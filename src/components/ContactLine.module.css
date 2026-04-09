@@ -1,0 +1,16 @@
+.contact {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--fg-subtle);
+  line-height: 1.6;
+}
+
+.contact a {
+  color: var(--fg-base);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.contact a:hover {
+  opacity: 0.5;
+}

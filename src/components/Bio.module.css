@@ -1,0 +1,7 @@
+.bio {
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--fg-subtle);
+  line-height: 30px;
+  max-width: 600px;
+}
