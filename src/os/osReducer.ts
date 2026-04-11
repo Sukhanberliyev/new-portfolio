@@ -4,6 +4,7 @@ import {
   nextUntitledName,
 } from './defaultFolders'
 import { createDefaultNotes, nextNoteId } from './notesData'
+import { createTrashFolder } from './trashData'
 import type {
   ContextMenuState,
   DesktopFolderItem,
@@ -22,7 +23,10 @@ import { DEFAULT_WALLPAPER_ID } from './wallpapers'
 export interface OSReducerState {
   wallpaperId: string
   folders: DesktopFolderItem[]
+  trashFolder: DesktopFolderItem
+  trashedFolders: DesktopFolderItem[]
   selectedFolderId: string | null
+  selectedFolderIds: string[]
   renamingFolderId: string | null
   contextMenu: ContextMenuState | null
   activeMenu: MenuBarId | null
@@ -34,11 +38,15 @@ export interface OSReducerState {
 }
 
 const defaultNotes = createDefaultNotes()
+const defaultTrashFolder = createTrashFolder()
 
 export const initialOSState: OSReducerState = {
   wallpaperId: DEFAULT_WALLPAPER_ID,
   folders: createDefaultFolders(),
+  trashFolder: defaultTrashFolder,
+  trashedFolders: [],
   selectedFolderId: null,
+  selectedFolderIds: [],
   renamingFolderId: null,
   contextMenu: null,
   activeMenu: null,
@@ -54,8 +62,12 @@ export type OSAction =
   | { type: 'SET_WALLPAPER'; id: string }
   | { type: 'MOVE_FOLDER'; id: string; x: number; y: number }
   | { type: 'SELECT_FOLDER'; id: string | null }
+  | { type: 'SET_SELECTED_FOLDERS'; ids: string[] }
   | { type: 'OPEN_CONTEXT_MENU'; x: number; y: number; folderId?: string }
   | { type: 'REMOVE_FOLDER'; id: string }
+  | { type: 'REMOVE_FOLDERS'; ids: string[] }
+  | { type: 'REMOVE_TRASH_ITEMS'; ids: string[] }
+  | { type: 'EMPTY_TRASH' }
   | { type: 'CLOSE_CONTEXT_MENU' }
   | { type: 'SET_ACTIVE_MENU'; menu: MenuBarId | null }
   | { type: 'OPEN_WALLPAPER_PICKER' }
@@ -105,6 +117,9 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
       return {
         ...initialOSState,
         folders: createDefaultFolders(),
+        trashFolder: createTrashFolder(),
+        trashedFolders: [],
+        selectedFolderIds: [],
         notes,
         selectedNoteId: notes[0]?.id ?? null,
       }
@@ -125,7 +140,17 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
       return {
         ...state,
         selectedFolderId: action.id,
+        selectedFolderIds: action.id ? [action.id] : [],
         renamingFolderId: cancelRename ? null : rid,
+      }
+    }
+    case 'SET_SELECTED_FOLDERS': {
+      const unique = Array.from(new Set(action.ids))
+      return {
+        ...state,
+        selectedFolderIds: unique,
+        selectedFolderId: unique.length === 1 ? unique[0] : null,
+        renamingFolderId: unique.length === 1 ? state.renamingFolderId : null,
       }
     }
     case 'OPEN_CONTEXT_MENU':
@@ -154,17 +179,49 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
       return { ...state, wallpaperPickerOpen: false }
     case 'REMOVE_FOLDER': {
       const id = action.id
-      if (!state.folders.some((f) => f.id === id)) return state
+      const removing = state.folders.find((f) => f.id === id)
+      if (!removing) return state
       return {
         ...state,
         folders: state.folders.filter((f) => f.id !== id),
         windows: state.windows.filter((w) => w.folderId !== id),
+        trashedFolders: [removing, ...state.trashedFolders],
         selectedFolderId: state.selectedFolderId === id ? null : state.selectedFolderId,
+        selectedFolderIds: state.selectedFolderIds.filter((fid) => fid !== id),
         renamingFolderId: state.renamingFolderId === id ? null : state.renamingFolderId,
         contextMenu: null,
         activeMenu: null,
       }
     }
+    case 'REMOVE_FOLDERS': {
+      const ids = new Set(action.ids)
+      if (ids.size === 0) return state
+      const removed = state.folders.filter((f) => ids.has(f.id))
+      return {
+        ...state,
+        folders: state.folders.filter((f) => !ids.has(f.id)),
+        windows: state.windows.filter((w) => !ids.has(w.folderId)),
+        trashedFolders: removed.length > 0 ? [...removed, ...state.trashedFolders] : state.trashedFolders,
+        selectedFolderId: ids.has(state.selectedFolderId ?? '') ? null : state.selectedFolderId,
+        selectedFolderIds: state.selectedFolderIds.filter((fid) => !ids.has(fid)),
+        renamingFolderId: ids.has(state.renamingFolderId ?? '') ? null : state.renamingFolderId,
+        contextMenu: null,
+        activeMenu: null,
+      }
+    }
+    case 'REMOVE_TRASH_ITEMS': {
+      const ids = new Set(action.ids)
+      if (ids.size === 0) return state
+      return {
+        ...state,
+        trashedFolders: state.trashedFolders.filter((f) => !ids.has(f.id)),
+      }
+    }
+    case 'EMPTY_TRASH':
+      return {
+        ...state,
+        trashedFolders: [],
+      }
     case 'NEW_FOLDER': {
       const labels = state.folders.map((f) => f.label)
       const pos = defaultPositionForNewFolder(state.folders)
@@ -179,6 +236,7 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
         ...state,
         folders: [...state.folders, folder],
         selectedFolderId: folder.id,
+        selectedFolderIds: [folder.id],
         renamingFolderId: null,
         contextMenu: null,
         activeMenu: null,
@@ -201,6 +259,7 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
           ),
           nextWindowZ: state.nextWindowZ + 1,
           selectedFolderId: action.folderId,
+          selectedFolderIds: [action.folderId],
         }
       }
       const w: OpenFinderWindow = {
@@ -219,6 +278,7 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
         windows: [...state.windows, w],
         nextWindowZ: state.nextWindowZ + 1,
         selectedFolderId: action.folderId,
+        selectedFolderIds: [action.folderId],
       }
     }
     case 'CLOSE_WINDOW':
@@ -346,6 +406,7 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
         ),
         nextWindowZ: state.nextWindowZ + 1,
         selectedFolderId: win?.folderId ?? state.selectedFolderId,
+        selectedFolderIds: win?.folderId ? [win.folderId] : state.selectedFolderIds,
       }
     }
     case 'START_RENAME_FOLDER':
@@ -353,6 +414,7 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
         ...state,
         renamingFolderId: action.id,
         selectedFolderId: action.id,
+        selectedFolderIds: [action.id],
         contextMenu: null,
         activeMenu: null,
       }

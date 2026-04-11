@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import MenuBar from './MenuBar'
 import DesktopFolder from './DesktopFolder'
 import FinderWindow from './FinderWindow'
 import MinimizedWindowsBar from './MinimizedWindowsBar'
+import Dock from './Dock'
 import type { OSReducerState } from './osReducer'
 import type { HistoryAction } from './osHistoryReducer'
 import { WALLPAPERS } from './wallpapers'
@@ -28,6 +29,18 @@ export default function OSModeOverlay({
 }: OSModeOverlayProps) {
   const desktopRef = useRef<HTMLDivElement>(null)
   const menuBarRef = useRef<HTMLElement>(null)
+  const [selectionBox, setSelectionBox] = useState<{
+    x: number
+    y: number
+    width: number
+    height: number
+  } | null>(null)
+  const selectionRef = useRef<{
+    pointerId: number
+    originX: number
+    originY: number
+    active: boolean
+  } | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -53,7 +66,7 @@ export default function OSModeOverlay({
   useEffect(() => {
     if (
       !open ||
-      !state.selectedFolderId ||
+      state.selectedFolderIds.length === 0 ||
       state.contextMenu ||
       state.wallpaperPickerOpen ||
       state.renamingFolderId
@@ -64,13 +77,17 @@ export default function OSModeOverlay({
       const t = e.target
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return
       e.preventDefault()
-      dispatch({ type: 'REMOVE_FOLDER', id: state.selectedFolderId! })
+      if (state.selectedFolderIds.length === 1) {
+        dispatch({ type: 'REMOVE_FOLDER', id: state.selectedFolderIds[0] })
+      } else {
+        dispatch({ type: 'REMOVE_FOLDERS', ids: state.selectedFolderIds })
+      }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [
     open,
-    state.selectedFolderId,
+    state.selectedFolderIds,
     state.contextMenu,
     state.wallpaperPickerOpen,
     state.renamingFolderId,
@@ -83,7 +100,7 @@ export default function OSModeOverlay({
       if (e.key !== 'F2') return
       const t = e.target
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return
-      if (!state.selectedFolderId) return
+      if (!state.selectedFolderId || state.selectedFolderIds.length !== 1) return
       e.preventDefault()
       dispatch({ type: 'START_RENAME_FOLDER', id: state.selectedFolderId })
     }
@@ -92,6 +109,7 @@ export default function OSModeOverlay({
   }, [
     open,
     state.selectedFolderId,
+    state.selectedFolderIds,
     state.renamingFolderId,
     state.contextMenu,
     state.wallpaperPickerOpen,
@@ -127,7 +145,86 @@ export default function OSModeOverlay({
     dispatch({ type: 'OPEN_CONTEXT_MENU', x: e.clientX, y: e.clientY })
   }
 
-  const folderById = (id: string) => state.folders.find((f) => f.id === id)
+  const updateSelectionFromRect = (rect: {
+    left: number
+    top: number
+    right: number
+    bottom: number
+  }) => {
+    const desk = desktopRef.current
+    if (!desk) return
+    const nodes = desk.querySelectorAll<HTMLElement>('[data-folder-id]')
+    const ids: string[] = []
+    nodes.forEach((el) => {
+      const id = el.dataset.folderId
+      if (!id) return
+      const box = el.getBoundingClientRect()
+      const intersects =
+        rect.left <= box.right &&
+        rect.right >= box.left &&
+        rect.top <= box.bottom &&
+        rect.bottom >= box.top
+      if (intersects) ids.push(id)
+    })
+    dispatch({ type: 'SET_SELECTED_FOLDERS', ids })
+  }
+
+  const onDesktopPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return
+    if (e.target !== e.currentTarget) return
+    dispatch({ type: 'SET_SELECTED_FOLDERS', ids: [] })
+    const desk = desktopRef.current
+    if (!desk) return
+    desk.setPointerCapture(e.pointerId)
+    selectionRef.current = {
+      pointerId: e.pointerId,
+      originX: e.clientX,
+      originY: e.clientY,
+      active: false,
+    }
+    setSelectionBox(null)
+  }
+
+  const onDesktopPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const sel = selectionRef.current
+    if (!sel || sel.pointerId !== e.pointerId) return
+    const dx = e.clientX - sel.originX
+    const dy = e.clientY - sel.originY
+    const dist = dx * dx + dy * dy
+    if (!sel.active && dist < 9) return
+    sel.active = true
+    const desk = desktopRef.current
+    if (!desk) return
+    const rect = desk.getBoundingClientRect()
+    const left = Math.min(sel.originX, e.clientX)
+    const right = Math.max(sel.originX, e.clientX)
+    const top = Math.min(sel.originY, e.clientY)
+    const bottom = Math.max(sel.originY, e.clientY)
+    setSelectionBox({
+      x: left - rect.left,
+      y: top - rect.top,
+      width: right - left,
+      height: bottom - top,
+    })
+    updateSelectionFromRect({ left, top, right, bottom })
+  }
+
+  const onDesktopPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const sel = selectionRef.current
+    if (!sel || sel.pointerId !== e.pointerId) return
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      /* ignore */
+    }
+    selectionRef.current = null
+    setSelectionBox(null)
+  }
+
+  const folderById = (id: string) =>
+    state.folders.find((f) => f.id === id) ??
+    (state.trashFolder.id === id ? state.trashFolder : undefined)
+  const notesFolder = state.folders.find((f) => f.kind === 'notes')
   const minimizedWindows = state.windows.filter((w) => w.minimized)
   const visibleWindows = state.windows.filter((w) => !w.minimized)
   const frontWindow =
@@ -135,6 +232,7 @@ export default function OSModeOverlay({
       ? visibleWindows.reduce((a, b) => (b.z > a.z ? b : a))
       : null
   const frontFolderKind = frontWindow ? folderById(frontWindow.folderId)?.kind ?? null : null
+  const multiSelect = state.selectedFolderIds.length > 1
 
   return (
     <AnimatePresence>
@@ -163,6 +261,7 @@ export default function OSModeOverlay({
             activeMenu={state.activeMenu}
             dispatch={dispatch}
             selectedFolderId={state.selectedFolderId}
+            selectedFolderCount={state.selectedFolderIds.length}
             canUndo={canUndo}
             canRedo={canRedo}
             frontWindowKind={frontFolderKind}
@@ -172,17 +271,34 @@ export default function OSModeOverlay({
             ref={desktopRef}
             className={`${styles.desktop} ${minimizedWindows.length > 0 ? styles.desktopWithToolbar : ''}`}
             onContextMenu={onDesktopContextMenu}
+            onPointerDown={onDesktopPointerDown}
+            onPointerMove={onDesktopPointerMove}
+            onPointerUp={onDesktopPointerUp}
+            onPointerCancel={onDesktopPointerUp}
           >
             {state.folders.map((f) => (
               <DesktopFolder
                 key={f.id}
                 folder={f}
-                selected={state.selectedFolderId === f.id}
+                selected={state.selectedFolderIds.includes(f.id)}
+                selectedCount={state.selectedFolderIds.length}
                 isRenaming={state.renamingFolderId === f.id}
                 dispatch={dispatch}
                 desktopRef={desktopRef}
               />
             ))}
+
+            {selectionBox && (
+              <div
+                className={styles.selectionBox}
+                style={{
+                  left: selectionBox.x,
+                  top: selectionBox.y,
+                  width: selectionBox.width,
+                  height: selectionBox.height,
+                }}
+              />
+            )}
 
             {visibleWindows.map((w) => (
               <FinderWindow
@@ -193,6 +309,9 @@ export default function OSModeOverlay({
                 desktopRef={desktopRef}
                 notes={state.notes}
                 selectedNoteId={state.selectedNoteId}
+                folders={state.folders}
+                notesFolder={notesFolder}
+                trashedFolders={state.trashedFolders}
               />
             ))}
           </div>
@@ -201,6 +320,14 @@ export default function OSModeOverlay({
             windows={minimizedWindows}
             folderLabel={(folderId) => folderById(folderId)?.label}
             folderKind={(folderId) => folderById(folderId)?.kind}
+            dispatch={dispatch}
+          />
+
+          <Dock
+            notesFolder={notesFolder}
+            trashFolder={state.trashFolder}
+            trashedCount={state.trashedFolders.length}
+            windows={state.windows}
             dispatch={dispatch}
           />
 
@@ -228,7 +355,19 @@ export default function OSModeOverlay({
               }}
               role="menu"
             >
-              {state.contextMenu.folderId ? (
+              {multiSelect ? (
+                <button
+                  type="button"
+                  className={styles.menuItem}
+                  role="menuitem"
+                  onClick={() => {
+                    if (state.selectedFolderIds.length === 0) return
+                    dispatch({ type: 'REMOVE_FOLDERS', ids: state.selectedFolderIds })
+                  }}
+                >
+                  Delete
+                </button>
+              ) : state.contextMenu.folderId ? (
                 <>
                   <button
                     type="button"

@@ -7,6 +7,7 @@ interface MenuBarProps {
   activeMenu: MenuBarId | null
   dispatch: React.Dispatch<HistoryAction>
   selectedFolderId: string | null
+  selectedFolderCount: number
   canUndo: boolean
   canRedo: boolean
   frontWindowKind: FolderKind | null
@@ -23,7 +24,15 @@ function formatMenuClock(now: Date): string {
 }
 
 const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
-  { activeMenu, dispatch, selectedFolderId, canUndo, canRedo, frontWindowKind },
+  {
+    activeMenu,
+    dispatch,
+    selectedFolderId,
+    selectedFolderCount,
+    canUndo,
+    canRedo,
+    frontWindowKind,
+  },
   ref
 ) {
   const [now, setNow] = useState(() => new Date())
@@ -109,9 +118,9 @@ const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
               <button
                 type="button"
                 className={styles.menuItem}
-                disabled={!selectedFolderId}
+                disabled={!selectedFolderId || selectedFolderCount > 1}
                 onClick={() => {
-                  if (!selectedFolderId) return
+                  if (!selectedFolderId || selectedFolderCount > 1) return
                   dispatch({ type: 'START_RENAME_FOLDER', id: selectedFolderId })
                   dispatch({ type: 'SET_ACTIVE_MENU', menu: null })
                 }}
@@ -121,9 +130,9 @@ const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
               <button
                 type="button"
                 className={styles.menuItem}
-                disabled={!selectedFolderId}
+                disabled={!selectedFolderId || selectedFolderCount > 1}
                 onClick={() => {
-                  if (!selectedFolderId) return
+                  if (!selectedFolderId || selectedFolderCount > 1) return
                   dispatch({ type: 'REMOVE_FOLDER', id: selectedFolderId })
                   dispatch({ type: 'SET_ACTIVE_MENU', menu: null })
                 }}

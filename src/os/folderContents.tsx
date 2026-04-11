@@ -2,7 +2,13 @@ import type { FolderKind } from './osTypes'
 import { profile } from '../data/profile'
 import styles from './OSMode.module.css'
 
-export function FolderWindowBody({ kind }: { kind: FolderKind }) {
+export function FolderWindowBody({
+  kind,
+  selectedIds = [],
+}: {
+  kind: FolderKind
+  selectedIds?: string[]
+}) {
   switch (kind) {
     case 'about':
       return (
@@ -10,19 +16,30 @@ export function FolderWindowBody({ kind }: { kind: FolderKind }) {
           <p>{profile.bio}</p>
         </div>
       )
-    case 'projects':
+    case 'projects': {
+      const caseId = 'proj-case-study'
+      const workId = 'proj-selected-work'
       return (
         <div className={styles.cardGrid}>
-          <a className={styles.fileCard} href="#">
+          <a
+            className={`${styles.fileCard} ${selectedIds.includes(caseId) ? styles.fileCardSelected : ''}`}
+            href="#"
+            data-grid-id={caseId}
+          >
             <span className={styles.fileIcon}>📄</span>
             <span className={styles.fileLabel}>Case study (soon)</span>
           </a>
-          <a className={styles.fileCard} href="#">
+          <a
+            className={`${styles.fileCard} ${selectedIds.includes(workId) ? styles.fileCardSelected : ''}`}
+            href="#"
+            data-grid-id={workId}
+          >
             <span className={styles.fileIcon}>🎨</span>
             <span className={styles.fileLabel}>Selected work</span>
           </a>
         </div>
       )
+    }
     case 'playground':
       return (
         <p className={styles.emptyState}>

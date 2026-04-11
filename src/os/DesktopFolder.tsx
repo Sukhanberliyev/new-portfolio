@@ -8,6 +8,7 @@ const DRAG_THRESHOLD = 4
 interface DesktopFolderProps {
   folder: DesktopFolderItem
   selected: boolean
+  selectedCount: number
   isRenaming: boolean
   dispatch: React.Dispatch<HistoryAction>
   desktopRef: React.RefObject<HTMLElement | null>
@@ -16,6 +17,7 @@ interface DesktopFolderProps {
 export default function DesktopFolder({
   folder,
   selected,
+  selectedCount,
   isRenaming,
   dispatch,
   desktopRef,
@@ -154,6 +156,7 @@ export default function DesktopFolder({
       aria-label={isRenaming ? `Renaming ${folder.label}` : folder.label}
       className={`${styles.folder} ${selected ? styles.folderSelected : ''} ${isRenaming ? styles.folderRenaming : ''}`}
       style={{ left, top }}
+      data-folder-id={folder.id}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -163,6 +166,9 @@ export default function DesktopFolder({
         if (isRenaming) return
         e.preventDefault()
         e.stopPropagation()
+        if (selectedCount <= 1) {
+          dispatch({ type: 'SELECT_FOLDER', id: folder.id })
+        }
         dispatch({
           type: 'OPEN_CONTEXT_MENU',
           x: e.clientX,

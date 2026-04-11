@@ -28,6 +28,9 @@ function isUndoable(action: OSAction): boolean {
     case 'SET_WALLPAPER':
     case 'NEW_FOLDER':
     case 'REMOVE_FOLDER':
+    case 'REMOVE_FOLDERS':
+    case 'REMOVE_TRASH_ITEMS':
+    case 'EMPTY_TRASH':
     case 'RENAME_FOLDER':
     case 'OPEN_FINDER':
     case 'CLOSE_WINDOW':

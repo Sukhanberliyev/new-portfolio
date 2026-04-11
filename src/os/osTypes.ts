@@ -5,6 +5,7 @@ export type FolderKind =
   | 'contact'
   | 'custom'
   | 'notes'
+  | 'trash'
 
 export interface DesktopFolderItem {
   id: string
