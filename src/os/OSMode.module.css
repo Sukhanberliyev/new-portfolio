@@ -1,0 +1,722 @@
+.entryButton {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(9, 9, 11, 0.92);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.06),
+    0 8px 24px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.entryButton:hover {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.08),
+    0 12px 32px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.entryButton:active {
+  transform: translateY(0);
+}
+
+.entryIcon {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.closeOs {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  z-index: 10055;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.closeOs:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.menuBar {
+  position: relative;
+  z-index: 10045;
+  flex-shrink: 0;
+  height: 28px;
+  padding: 0 12px;
+  padding-right: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.36);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+}
+
+.menuLeft {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.menuWrap {
+  position: relative;
+}
+
+.menuTrigger {
+  padding: 2px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: rgba(0, 0, 0, 0.88);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.menuTrigger:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.menuTriggerActive {
+  background: rgba(0, 100, 220, 0.18);
+}
+
+.menuTriggerBold {
+  font-weight: 700;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  padding: 4px 0;
+  margin-top: 2px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.04),
+    0 12px 40px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.dropdownRight {
+  left: auto;
+  right: 8px;
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: 4px 12px 4px 20px;
+  font-size: 13px;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.9);
+  background: transparent;
+  border: none;
+  cursor: default;
+}
+
+.menuItem:hover:not(:disabled) {
+  background: rgba(0, 100, 220, 0.85);
+  color: #fff;
+}
+
+.menuItem:disabled {
+  color: rgba(0, 0, 0, 0.35);
+}
+
+.menuSep {
+  height: 1px;
+  margin: 4px 8px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.clock {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: rgba(0, 0, 0, 0.82);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.desktop {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.desktopWithToolbar {
+  padding-bottom: 88px;
+}
+
+.folder {
+  position: absolute;
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+}
+
+.folderSelected .folderIconWrap {
+  background: rgba(0, 100, 220, 0.35);
+  outline: 1px solid rgba(0, 100, 220, 0.5);
+}
+
+.folderIconWrap {
+  width: 56px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.folder:hover .folderIconWrap {
+  transform: scale(1.02);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.14),
+    0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.folderGlyph {
+  font-size: 28px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+
+.folderRenaming {
+  cursor: default;
+}
+
+.folderLabel {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+  color: #fff;
+  text-shadow:
+    0 0 4px rgba(0, 0, 0, 0.65),
+    0 1px 2px rgba(0, 0, 0, 0.85);
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.folderRenameInput {
+  width: 100%;
+  max-width: 104px;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--fg-base, #09090b);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 100, 220, 0.65);
+  border-radius: 4px;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.contextMenu {
+  position: fixed;
+  z-index: 10050;
+  min-width: 200px;
+  padding: 4px 0;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.04),
+    0 12px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10040;
+  background: transparent;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.modal {
+  position: fixed;
+  z-index: 10061;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, calc(100vw - 48px));
+  max-height: min(70vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.05),
+    0 24px 80px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  overflow: hidden;
+}
+
+.modalHeader {
+  padding: 14px 16px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.75);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.modalGrid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.wallpaperSwatch {
+  aspect-ratio: 16 / 10;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.wallpaperSwatch:hover {
+  transform: scale(1.03);
+}
+
+.wallpaperSwatchActive {
+  border-color: rgba(0, 100, 220, 0.95);
+}
+
+.wallpaperName {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.65);
+  text-align: center;
+}
+
+.finderWindow {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: rgba(246, 246, 246, 0.94);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  box-shadow:
+    0 0 0 0.5px rgba(255, 255, 255, 0.5) inset,
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 20px 50px rgba(0, 0, 0, 0.22);
+  overflow: visible;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.resizeHandles {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  border-radius: 10px;
+}
+
+.resizeHandle {
+  position: absolute;
+  pointer-events: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  color: transparent;
+}
+
+/* Slightly outside the frame so handles sit above the title bar hit area (like macOS frame resize). */
+.resizeN {
+  top: -6px;
+  left: 12px;
+  right: 12px;
+  height: 10px;
+  cursor: ns-resize;
+}
+
+.resizeS {
+  bottom: -6px;
+  left: 12px;
+  right: 12px;
+  height: 10px;
+  cursor: ns-resize;
+}
+
+.resizeE {
+  right: -6px;
+  top: 12px;
+  bottom: 12px;
+  width: 10px;
+  cursor: ew-resize;
+}
+
+.resizeW {
+  left: -6px;
+  top: 12px;
+  bottom: 12px;
+  width: 10px;
+  cursor: ew-resize;
+}
+
+.resizeNW {
+  top: -8px;
+  left: -8px;
+  width: 18px;
+  height: 18px;
+  cursor: nwse-resize;
+}
+
+.resizeNE {
+  top: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  cursor: nesw-resize;
+}
+
+.resizeSW {
+  bottom: -8px;
+  left: -8px;
+  width: 18px;
+  height: 18px;
+  cursor: nesw-resize;
+}
+
+.resizeSE {
+  bottom: -8px;
+  right: -8px;
+  width: 18px;
+  height: 18px;
+  /* macOS maps nwse-resize to the diagonal arrows (e.g. bottom-right). */
+  cursor: nwse-resize;
+}
+
+.finderTitleBar {
+  position: relative;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 72px 1fr 72px;
+  align-items: center;
+  height: 40px;
+  padding: 0 10px;
+  background: linear-gradient(180deg, #ececec 0%, #e2e2e2 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+  border-radius: 10px 10px 0 0;
+}
+
+.finderTitleBar:active {
+  cursor: grabbing;
+}
+
+.traffic {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.trafficBtn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  padding: 0;
+  cursor: default;
+}
+
+.trafficClose {
+  background: #ff5f57;
+}
+
+.trafficMin {
+  background: #febc2e;
+  cursor: pointer;
+}
+
+.trafficMin:hover {
+  filter: brightness(0.96);
+}
+
+.trafficMax {
+  background: #28c840;
+}
+
+.finderTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.finderToolbar {
+  position: relative;
+  z-index: 40;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  background: rgba(255, 255, 255, 0.65);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.finderNav {
+  display: flex;
+  gap: 4px;
+}
+
+.finderNavBtn {
+  width: 26px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
+
+.finderBody {
+  position: relative;
+  z-index: 40;
+  flex: 1;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 0 0 9px 9px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.fileCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.12s ease;
+}
+
+.fileCard:hover {
+  background: rgba(0, 100, 220, 0.12);
+}
+
+.fileIcon {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.fileLabel {
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.75);
+  word-break: break-word;
+}
+
+.emptyState {
+  padding: 24px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.textBlock {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.78);
+}
+
+.textBlock p + p {
+  margin-top: 10px;
+}
+
+.linkList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.linkList a {
+  font-size: 13px;
+  color: rgba(0, 100, 220, 0.95);
+  text-decoration: none;
+}
+
+.linkList a:hover {
+  text-decoration: underline;
+}
+
+.minimizedToolbar {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10030;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: calc(100vw - 48px);
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.38);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 8px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+}
+
+.minimizedTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 56px;
+  max-width: 96px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease;
+}
+
+.minimizedTile:hover {
+  background: rgba(255, 255, 255, 0.88);
+  transform: translateY(-2px);
+}
+
+.minimizedTileIcon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.minimizedTileLabel {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.75);
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}

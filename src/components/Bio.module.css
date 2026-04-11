@@ -1,5 +1,6 @@
 .bio {
   font-size: 20px;
+  letter-spacing: 1%;
   font-weight: 400;
   color: var(--fg-subtle);
   line-height: 30px;

@@ -1,5 +1,10 @@
+import OSModeRoot from './os/OSModeRoot'
 import HomePage from './pages/HomePage'
 
 export default function App() {
-  return <HomePage />
+  return (
+    <OSModeRoot>
+      <HomePage />
+    </OSModeRoot>
+  )
 }
