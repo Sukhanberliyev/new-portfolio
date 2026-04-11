@@ -381,16 +381,16 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: rgba(246, 246, 246, 0.94);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 10px;
+  background: rgba(10, 10, 10, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   box-shadow:
-    0 0 0 0.5px rgba(255, 255, 255, 0.5) inset,
-    0 1px 2px rgba(0, 0, 0, 0.08),
-    0 20px 50px rgba(0, 0, 0, 0.22);
+    0 0 0 0.5px rgba(255, 255, 255, 0.08) inset,
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 24px 60px rgba(0, 0, 0, 0.45);
   overflow: visible;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
 }
 
 .resizeHandles {
@@ -398,7 +398,7 @@
   inset: 0;
   z-index: 45;
   pointer-events: none;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .resizeHandle {
@@ -480,37 +480,51 @@
   cursor: nwse-resize;
 }
 
-.finderTitleBar {
+.finderHeader {
   position: relative;
   z-index: 50;
-  display: grid;
-  grid-template-columns: 72px 1fr 72px;
+  display: flex;
   align-items: center;
-  height: 40px;
-  padding: 0 10px;
-  background: linear-gradient(180deg, #ececec 0%, #e2e2e2 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  min-height: 52px;
+  padding: 10px 18px 10px;
   cursor: default;
   user-select: none;
   flex-shrink: 0;
-  border-radius: 10px 10px 0 0;
+}
+
+/* Collapsed: traffic + toolbar + inline title in one row (matches macOS narrow toolbar). */
+.finderHeaderRowCollapsed {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.finderHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
 }
 
 .traffic {
   position: relative;
   z-index: 2;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .trafficBtn {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  border: none;
   padding: 0;
   cursor: default;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18) inset;
 }
 
 .trafficClose {
@@ -529,46 +543,71 @@
   background: #28c840;
 }
 
-.finderTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.55);
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.finderToolbar {
-  position: relative;
-  z-index: 40;
-  flex-shrink: 0;
+.finderToolbarLeft {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 36px;
-  padding: 0 10px;
-  background: rgba(255, 255, 255, 0.65);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
 }
 
-.finderNav {
-  display: flex;
-  gap: 4px;
-}
-
-.finderNavBtn {
-  width: 26px;
-  height: 22px;
+.finderToolbarIcon {
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.45);
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.82);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  cursor: default;
+  transition:
+    color 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.finderToolbarIcon:hover:not(:disabled) {
+  color: rgba(255, 255, 255, 1);
+}
+
+.finderToolbarIcon:disabled {
+  opacity: 0.45;
+}
+
+.finderToolbarIconActive {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.finderIconSvg {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+.finderHeaderTitle {
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.96);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pane title in the top bar (expanded); insets align with .finderContent horizontal padding. */
+.finderPaneHeaderTitle {
+  min-width: 0;
+  padding: 0 22px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.96);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .finderBody {
@@ -576,51 +615,119 @@
   z-index: 40;
   flex: 1;
   min-height: 0;
-  display: flex;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.55);
-  border-radius: 0 0 9px 9px;
+  background: transparent;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Expanded: sidebar (with toolbar inside) + pane title row share one grid so baselines align. */
+.finderBodyExpanded {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  grid-template-rows: auto 1fr;
+  column-gap: 1px;
+  row-gap: 0;
+  padding: 0;
+}
+
+.finderBodyExpanded .finderSidebar {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+
+.finderBodyExpanded .finderPaneHeaderCell {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+}
+
+.finderBodyExpanded .finderPane {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+  width: 100%;
+  border-radius: 0 0 6px 6px;
+  color: rgba(9, 9, 11, 1);
+}
+
+.finderBodyCollapsed {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  gap: 0;
+}
+
+.finderBodyCollapsed .finderPane {
+  flex: 1;
+  min-height: 0;
+}
+
+/* Toolbar row lives inside the sidebar in expanded layout (see reference UIs). */
+.finderSidebarTop {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  height: 44px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  cursor: default;
+  user-select: none;
+}
+
+.finderPaneHeaderCell {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  box-sizing: border-box;
+  cursor: default;
+  user-select: none;
+  background-color: rgba(23, 23, 23, 1);
+  border-radius: 6px 6px 0 0;
 }
 
 .finderSidebar {
-  width: 190px;
-  min-width: 160px;
-  max-width: 220px;
+  width: 100%;
+  min-width: 240px;
   display: flex;
   flex-direction: column;
-  padding: 12px 8px;
-  gap: 12px;
-  background: rgba(20, 20, 20, 0.12);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-  overflow-y: auto;
+  min-height: 0;
+  padding: 6px;
+  gap: 0;
+  background: unset;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0);
+  overflow: hidden;
 }
 
 .finderSidebarSection {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  padding-top: 12px;
+  overflow-y: auto;
 }
 
 .finderSidebarTitle {
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: rgba(0, 0, 0, 0.5);
+  display: none;
 }
 
 .finderSidebarItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
+  gap: 14px;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
   border: none;
   background: transparent;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  color: rgba(0, 0, 0, 0.75);
+  color: rgba(255, 255, 255, 0.94);
   text-align: left;
   cursor: default;
   transition:
@@ -629,12 +736,12 @@
 }
 
 .finderSidebarItem:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .finderSidebarItemActive {
-  background: rgba(0, 100, 220, 0.12);
-  color: rgba(0, 80, 180, 0.95);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .finderSidebarSubItem {
@@ -642,34 +749,62 @@
 }
 
 .finderSidebarIcon {
-  width: 16px;
+  width: 22px;
+  height: 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  flex-shrink: 0;
 }
 
 .finderSidebarLabel {
   flex: 1;
+  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.02em;
+}
+
+.finderPane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+  background: #171717;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.finderPaneCollapsed {
+  border-radius: 0 0 8px 8px;
 }
 
 .finderContent {
   position: relative;
   flex: 1;
+  width: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 12px;
+  padding: 12px 22px 22px;
   overflow-y: auto;
   overflow-x: hidden;
+  background: rgba(23, 23, 23, 1);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .finderContentNotes {
   padding: 0;
   overflow: hidden;
   display: flex;
+  flex: 1;
+}
+
+.finderContentCollapsed {
+  padding-top: 0;
 }
 
 .finderGrid {
@@ -685,8 +820,8 @@
   gap: 8px;
   padding: 12px 10px;
   border-radius: 10px;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.04);
   cursor: default;
   transition:
     background 0.12s ease,
@@ -695,14 +830,14 @@
 }
 
 .finderGridItem:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
   transform: translateY(-2px);
 }
 
 .finderGridItemSelected {
-  background: rgba(0, 100, 220, 0.12);
-  border-color: rgba(0, 100, 220, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .finderGridIcon {
@@ -714,7 +849,7 @@
   font-size: 12px;
   font-weight: 500;
   text-align: center;
-  color: rgba(0, 0, 0, 0.7);
+  color: rgba(255, 255, 255, 0.8);
   word-break: break-word;
 }
 
@@ -803,12 +938,12 @@
 }
 
 .fileCard:hover {
-  background: rgba(0, 100, 220, 0.12);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .fileCardSelected {
-  background: rgba(0, 100, 220, 0.2);
-  outline: 1px solid rgba(0, 100, 220, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  outline: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .fileIcon {
@@ -820,7 +955,7 @@
   font-size: 11px;
   font-weight: 500;
   text-align: center;
-  color: rgba(0, 0, 0, 0.75);
+  color: rgba(255, 255, 255, 0.8);
   word-break: break-word;
 }
 
@@ -828,14 +963,14 @@
   padding: 24px 16px;
   font-size: 13px;
   line-height: 1.5;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.55);
   text-align: center;
 }
 
 .textBlock {
   font-size: 13px;
   line-height: 1.55;
-  color: rgba(0, 0, 0, 0.78);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .textBlock p + p {
@@ -851,11 +986,12 @@
 
 .linkList a {
   font-size: 13px;
-  color: rgba(0, 100, 220, 0.95);
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
 }
 
 .linkList a:hover {
+  color: rgba(255, 255, 255, 1);
   text-decoration: underline;
 }
 

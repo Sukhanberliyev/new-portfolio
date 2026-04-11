@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type RefObject,
+} from 'react'
 import type { DesktopFolderItem, NoteItem, OpenFinderWindow } from './osTypes'
 import type { HistoryAction } from './osHistoryReducer'
 import {
@@ -24,11 +34,105 @@ const RESIZE_HANDLES: { edge: ResizeEdge; className: string; label: string }[] =
   { edge: 'se', className: styles.resizeSE, label: 'Resize bottom-right corner' },
 ]
 
+function FinderIcon({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className ?? styles.finderIconSvg}
+      aria-hidden
+    >
+      {children}
+    </svg>
+  )
+}
+
+function SidebarToggleIcon() {
+  return (
+    <FinderIcon>
+      <rect x="2.2" y="2.2" width="11.6" height="11.6" rx="2.4" />
+      <path d="M6.3 3.4v9.2" />
+    </FinderIcon>
+  )
+}
+
+function ArrowLeftIcon() {
+  return (
+    <FinderIcon>
+      <path d="M9.8 3.5 5.3 8l4.5 4.5" />
+      <path d="M5.7 8h6.1" />
+    </FinderIcon>
+  )
+}
+
+function ArrowRightIcon() {
+  return (
+    <FinderIcon>
+      <path d="m6.2 3.5 4.5 4.5-4.5 4.5" />
+      <path d="M10.3 8H4.2" />
+    </FinderIcon>
+  )
+}
+
+function DesktopIcon() {
+  return (
+    <FinderIcon>
+      <rect x="2.2" y="3" width="11.6" height="8.2" rx="1.8" />
+      <path d="M2.8 8.6h10.4" />
+    </FinderIcon>
+  )
+}
+
+function ApplicationsIcon() {
+  return (
+    <FinderIcon>
+      <circle cx="8" cy="8" r="2.2" />
+      <path d="M8 2.8v1.4" />
+      <path d="M8 11.8v1.4" />
+      <path d="m4.3 4.3 1 1" />
+      <path d="m10.7 10.7 1 1" />
+      <path d="M2.8 8h1.4" />
+      <path d="M11.8 8h1.4" />
+      <path d="m4.3 11.7 1-1" />
+      <path d="m10.7 5.3 1-1" />
+    </FinderIcon>
+  )
+}
+
+function DocumentsIcon() {
+  return (
+    <FinderIcon>
+      <path d="M4 2.5h5l3 3v8A1.5 1.5 0 0 1 10.5 15h-6A1.5 1.5 0 0 1 3 13.5v-9A2 2 0 0 1 5 2.5Z" />
+      <path d="M9 2.5v3h3" />
+    </FinderIcon>
+  )
+}
+
+function DownloadsIcon() {
+  return (
+    <FinderIcon>
+      <path d="M8 2.7v7.1" />
+      <path d="m5.2 7.8 2.8 2.9 2.8-2.9" />
+      <path d="M3.1 13.2h9.8" />
+    </FinderIcon>
+  )
+}
+
 interface FinderWindowProps {
   win: OpenFinderWindow
   folder: DesktopFolderItem | undefined
-  dispatch: React.Dispatch<HistoryAction>
-  desktopRef: React.RefObject<HTMLElement | null>
+  dispatch: Dispatch<HistoryAction>
+  desktopRef: RefObject<HTMLElement | null>
   notes: NoteItem[]
   selectedNoteId: string | null
   folders: DesktopFolderItem[]
@@ -85,7 +189,7 @@ export default function FinderWindow({
   const isNotes = folder?.kind === 'notes'
   const isTrash = folder?.kind === 'trash'
   const [sidebarView, setSidebarView] = useState<SidebarView>('folder')
-  const [activeApp, setActiveApp] = useState<'notes' | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [selectedGridIds, setSelectedGridIds] = useState<string[]>([])
   const [contentSelection, setContentSelection] = useState<{
     x: number
@@ -104,7 +208,6 @@ export default function FinderWindow({
 
   useEffect(() => {
     setSidebarView('folder')
-    setActiveApp(null)
     setSelectedGridIds([])
     setFinderMenu(null)
   }, [win.folderId])
@@ -144,7 +247,7 @@ export default function FinderWindow({
     [desktopRef]
   )
 
-  const onTitlePointerDown = (e: React.PointerEvent) => {
+  const onTitlePointerDown = (e: ReactPointerEvent) => {
     if (e.button !== 0 || resizeRef.current) return
     e.stopPropagation()
     dispatch({ type: 'FOCUS_WINDOW', windowId: win.id })
@@ -162,7 +265,7 @@ export default function FinderWindow({
     setDragVisual(null)
   }
 
-  const onTitlePointerMove = (e: React.PointerEvent) => {
+  const onTitlePointerMove = (e: ReactPointerEvent) => {
     const d = dragRef.current
     if (!d || d.pointerId !== e.pointerId) return
     const dx = e.clientX - d.originX
@@ -182,7 +285,7 @@ export default function FinderWindow({
     setDragVisual(next)
   }
 
-  const onTitlePointerUp = (e: React.PointerEvent) => {
+  const onTitlePointerUp = (e: ReactPointerEvent) => {
     const d = dragRef.current
     if (!d || d.pointerId !== e.pointerId) return
     try {
@@ -202,7 +305,7 @@ export default function FinderWindow({
     setDragVisual(null)
   }
 
-  const onResizePointerDown = (e: React.PointerEvent, edge: ResizeEdge) => {
+  const onResizePointerDown = (e: ReactPointerEvent, edge: ResizeEdge) => {
     if (e.button !== 0) return
     e.stopPropagation()
     e.preventDefault()
@@ -231,7 +334,7 @@ export default function FinderWindow({
     setResizePreview(startRect)
   }
 
-  const onResizePointerMove = (e: React.PointerEvent) => {
+  const onResizePointerMove = (e: ReactPointerEvent) => {
     const r = resizeRef.current
     if (!r || r.pointerId !== e.pointerId) return
     const deskEl = desktopRef.current
@@ -253,7 +356,7 @@ export default function FinderWindow({
     setResizePreview(next)
   }
 
-  const onResizePointerUp = (e: React.PointerEvent) => {
+  const onResizePointerUp = (e: ReactPointerEvent) => {
     const r = resizeRef.current
     if (!r || r.pointerId !== e.pointerId) return
     try {
@@ -298,6 +401,26 @@ export default function FinderWindow({
     sidebarView === 'desktop' ||
     sidebarView === 'applications' ||
     (sidebarView === 'folder' && !isNotes)
+  const currentViewTitle =
+    sidebarView === 'folder'
+      ? title
+      : sidebarView === 'applications'
+        ? 'Applications'
+        : sidebarView === 'desktop'
+          ? 'Desktop'
+          : sidebarView === 'documents'
+            ? 'Documents'
+            : 'Downloads'
+  const sidebarItems: Array<{
+    view: Exclude<SidebarView, 'folder'>
+    label: string
+    icon: ReactNode
+  }> = [
+    { view: 'desktop', label: 'Desktop', icon: <DesktopIcon /> },
+    { view: 'applications', label: 'Applications', icon: <ApplicationsIcon /> },
+    { view: 'documents', label: 'Documents', icon: <DocumentsIcon /> },
+    { view: 'downloads', label: 'Downloads', icon: <DownloadsIcon /> },
+  ]
 
   const updateContentSelection = (rect: {
     left: number
@@ -323,7 +446,7 @@ export default function FinderWindow({
     setSelectedGridIds(ids)
   }
 
-  const onContentPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onContentPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!selectionEnabled) return
     if (e.button !== 0) return
     const target = e.target as HTMLElement
@@ -342,7 +465,7 @@ export default function FinderWindow({
     setFinderMenu(null)
   }
 
-  const onContentPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onContentPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const sel = contentSelectionRef.current
     if (!sel || sel.pointerId !== e.pointerId) return
     const dx = e.clientX - sel.originX
@@ -366,7 +489,7 @@ export default function FinderWindow({
     updateContentSelection({ left, top, right, bottom })
   }
 
-  const onContentPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onContentPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     const sel = contentSelectionRef.current
     if (!sel || sel.pointerId !== e.pointerId) return
     try {
@@ -378,7 +501,7 @@ export default function FinderWindow({
     setContentSelection(null)
   }
 
-  const onContentContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onContentContextMenu = (e: ReactMouseEvent<HTMLDivElement>) => {
     e.stopPropagation()
     if (!selectionEnabled) return
     e.preventDefault()
@@ -485,6 +608,88 @@ export default function FinderWindow({
     }
   }
 
+  const onTitleBarDoubleClick = (e: ReactMouseEvent) => {
+    e.stopPropagation()
+    const desk = desktopRef.current
+    if (!desk) return
+    const { width, height } = desk.getBoundingClientRect()
+    dispatch({
+      type: 'TOGGLE_WINDOW_ZOOM',
+      windowId: win.id,
+      desktopWidth: width,
+      desktopHeight: height,
+    })
+  }
+
+  const titleBarDragProps = {
+    onPointerDown: onTitlePointerDown,
+    onPointerMove: onTitlePointerMove,
+    onPointerUp: onTitlePointerUp,
+    onPointerCancel: onTitlePointerUp,
+    onDoubleClick: onTitleBarDoubleClick,
+  }
+
+  const headerChrome = (
+    <>
+      <div className={styles.traffic} onDoubleClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className={`${styles.trafficBtn} ${styles.trafficClose}`}
+          aria-label="Close"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            dispatch({ type: 'CLOSE_WINDOW', windowId: win.id })
+          }}
+        />
+        <button
+          type="button"
+          className={`${styles.trafficBtn} ${styles.trafficMin}`}
+          aria-label="Minimize"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            dispatch({ type: 'MINIMIZE_WINDOW', windowId: win.id })
+          }}
+        />
+        <span className={`${styles.trafficBtn} ${styles.trafficMax}`} aria-hidden />
+      </div>
+
+      <div className={styles.finderToolbarLeft} onDoubleClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className={styles.finderToolbarIcon}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            setSidebarCollapsed((prev) => !prev)
+          }}
+          aria-label={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+        >
+          <SidebarToggleIcon />
+        </button>
+        <button
+          type="button"
+          className={styles.finderToolbarIcon}
+          aria-label="Back"
+          disabled
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <ArrowLeftIcon />
+        </button>
+        <button
+          type="button"
+          className={styles.finderToolbarIcon}
+          aria-label="Forward"
+          disabled
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <ArrowRightIcon />
+        </button>
+      </div>
+    </>
+  )
+
   return (
     <div
       className={styles.finderWindow}
@@ -516,202 +721,103 @@ export default function FinderWindow({
           />
         ))}
       </div>
-      <div
-        className={styles.finderTitleBar}
-        onPointerDown={onTitlePointerDown}
-        onPointerMove={onTitlePointerMove}
-        onPointerUp={onTitlePointerUp}
-        onPointerCancel={onTitlePointerUp}
-        onDoubleClick={(e) => {
-          e.stopPropagation()
-          const desk = desktopRef.current
-          if (!desk) return
-          const { width, height } = desk.getBoundingClientRect()
-          dispatch({
-            type: 'TOGGLE_WINDOW_ZOOM',
-            windowId: win.id,
-            desktopWidth: width,
-            desktopHeight: height,
-          })
-        }}
-      >
-        <div
-          className={styles.traffic}
-          onDoubleClick={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            className={`${styles.trafficBtn} ${styles.trafficClose}`}
-            aria-label="Close"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              dispatch({ type: 'CLOSE_WINDOW', windowId: win.id })
-            }}
-          />
-          <button
-            type="button"
-            className={`${styles.trafficBtn} ${styles.trafficMin}`}
-            aria-label="Minimize"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              dispatch({ type: 'MINIMIZE_WINDOW', windowId: win.id })
-            }}
-          />
-          <span className={`${styles.trafficBtn} ${styles.trafficMax}`} aria-hidden />
-        </div>
-        <div className={styles.finderTitle}>{title}</div>
-        <span />
-      </div>
-      <div className={styles.finderToolbar}>
-        <div className={styles.finderNav}>
-          <span className={styles.finderNavBtn} aria-hidden>
-            ‹
-          </span>
-          <span className={styles.finderNavBtn} aria-hidden>
-            ›
-          </span>
-        </div>
-      </div>
-      <div className={styles.finderBody}>
-        <aside className={styles.finderSidebar} aria-label="Finder sidebar">
-          <div className={styles.finderSidebarSection}>
-            <div className={styles.finderSidebarTitle}>Favorites</div>
-            {folder && (
-              <button
-                type="button"
-                className={`${styles.finderSidebarItem} ${sidebarView === 'folder' ? styles.finderSidebarItemActive : ''}`}
-                onClick={() => {
-                  setSidebarView('folder')
-                  setActiveApp(null)
-                }}
-              >
-                <span className={styles.finderSidebarIcon} aria-hidden>
-                  📂
-                </span>
-                <span className={styles.finderSidebarLabel}>{folder.label}</span>
-              </button>
-            )}
-            <button
-              type="button"
-              className={`${styles.finderSidebarItem} ${sidebarView === 'applications' ? styles.finderSidebarItemActive : ''}`}
-              onClick={() => {
-                setSidebarView('applications')
-                setActiveApp(null)
-              }}
-            >
-              <span className={styles.finderSidebarIcon} aria-hidden>
-                🧭
-              </span>
-              <span className={styles.finderSidebarLabel}>Applications</span>
-            </button>
-            {notesFolder && (
-              <button
-                type="button"
-                className={`${styles.finderSidebarItem} ${styles.finderSidebarSubItem} ${activeApp === 'notes' ? styles.finderSidebarItemActive : ''}`}
-                onClick={() => {
-                  setSidebarView('applications')
-                  setActiveApp('notes')
-                  dispatch({ type: 'OPEN_FINDER', folderId: notesFolder.id })
-                }}
-              >
-                <span className={styles.finderSidebarIcon} aria-hidden>
-                  🗒️
-                </span>
-                <span className={styles.finderSidebarLabel}>Notes</span>
-              </button>
-            )}
-            <button
-              type="button"
-              className={`${styles.finderSidebarItem} ${sidebarView === 'desktop' ? styles.finderSidebarItemActive : ''}`}
-              onClick={() => {
-                setSidebarView('desktop')
-                setActiveApp(null)
-              }}
-            >
-              <span className={styles.finderSidebarIcon} aria-hidden>
-                🖥️
-              </span>
-              <span className={styles.finderSidebarLabel}>Desktop</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.finderSidebarItem} ${sidebarView === 'documents' ? styles.finderSidebarItemActive : ''}`}
-              onClick={() => {
-                setSidebarView('documents')
-                setActiveApp(null)
-              }}
-            >
-              <span className={styles.finderSidebarIcon} aria-hidden>
-                📄
-              </span>
-              <span className={styles.finderSidebarLabel}>Documents</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.finderSidebarItem} ${sidebarView === 'downloads' ? styles.finderSidebarItemActive : ''}`}
-              onClick={() => {
-                setSidebarView('downloads')
-                setActiveApp(null)
-              }}
-            >
-              <span className={styles.finderSidebarIcon} aria-hidden>
-                ⬇️
-              </span>
-              <span className={styles.finderSidebarLabel}>Downloads</span>
-            </button>
-          </div>
-        </aside>
-        <div
-          className={`${styles.finderContent} ${notesContentActive ? styles.finderContentNotes : ''}`}
-          ref={contentRef}
-          onPointerDown={onContentPointerDown}
-          onPointerMove={onContentPointerMove}
-          onPointerUp={onContentPointerUp}
-          onPointerCancel={onContentPointerUp}
-          onContextMenu={onContentContextMenu}
-        >
-          {renderContent()}
-          {contentSelection && (
-            <div
-              className={styles.selectionBox}
-              style={{
-                left: contentSelection.x,
-                top: contentSelection.y,
-                width: contentSelection.width,
-                height: contentSelection.height,
-              }}
-            />
-          )}
-          {finderMenu && (
-            <div
-              id={`finder-menu-${win.id}`}
-              className={styles.finderContextMenu}
-              style={{
-                left: Math.max(8, Math.min(finderMenu.x, window.innerWidth - 160)),
-                top: Math.max(8, Math.min(finderMenu.y, window.innerHeight - 80)),
-              }}
-              role="menu"
-            >
-              <button
-                type="button"
-                className={styles.menuItem}
-                role="menuitem"
-                onClick={() => {
-                  if (sidebarView === 'desktop') {
-                    dispatch({ type: 'REMOVE_FOLDERS', ids: selectedGridIds })
-                  } else if (sidebarView === 'folder' && isTrash) {
-                    dispatch({ type: 'REMOVE_TRASH_ITEMS', ids: selectedGridIds })
-                  }
-                  setSelectedGridIds([])
-                  setFinderMenu(null)
-                }}
-              >
-                Delete
-              </button>
+      {sidebarCollapsed && (
+        <div className={styles.finderHeader} {...titleBarDragProps}>
+          <div className={styles.finderHeaderRowCollapsed}>
+            <div className={styles.finderHeaderLeft}>
+              {headerChrome}
+              <div className={styles.finderHeaderTitle}>{currentViewTitle}</div>
             </div>
-          )}
+          </div>
+        </div>
+      )}
+      <div
+        className={`${styles.finderBody} ${sidebarCollapsed ? styles.finderBodyCollapsed : styles.finderBodyExpanded}`}
+      >
+        {!sidebarCollapsed && (
+          <aside className={styles.finderSidebar} aria-label="Finder sidebar">
+            <div className={styles.finderSidebarTop} {...titleBarDragProps}>
+              <div className={styles.finderHeaderLeft}>{headerChrome}</div>
+            </div>
+            <div className={styles.finderSidebarSection}>
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.view}
+                  type="button"
+                  className={`${styles.finderSidebarItem} ${sidebarView === item.view ? styles.finderSidebarItemActive : ''}`}
+                  onClick={() => {
+                    setSidebarView(item.view)
+                  }}
+                >
+                  <span className={styles.finderSidebarIcon} aria-hidden>
+                    {item.icon}
+                  </span>
+                  <span className={styles.finderSidebarLabel}>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </aside>
+        )}
+        {!sidebarCollapsed && (
+          <div className={styles.finderPaneHeaderCell} {...titleBarDragProps}>
+            {!notesContentActive && !isTrash && (
+              <div className={styles.finderPaneHeaderTitle}>{currentViewTitle}</div>
+            )}
+          </div>
+        )}
+        <div
+          className={`${styles.finderPane} ${sidebarCollapsed ? styles.finderPaneCollapsed : ''}`}
+        >
+          <div
+            className={`${styles.finderContent} ${notesContentActive ? styles.finderContentNotes : ''} ${sidebarCollapsed ? styles.finderContentCollapsed : ''}`}
+            ref={contentRef}
+            onPointerDown={onContentPointerDown}
+            onPointerMove={onContentPointerMove}
+            onPointerUp={onContentPointerUp}
+            onPointerCancel={onContentPointerUp}
+            onContextMenu={onContentContextMenu}
+          >
+            {renderContent()}
+            {contentSelection && (
+              <div
+                className={styles.selectionBox}
+                style={{
+                  left: contentSelection.x,
+                  top: contentSelection.y,
+                  width: contentSelection.width,
+                  height: contentSelection.height,
+                }}
+              />
+            )}
+            {finderMenu && (
+              <div
+                id={`finder-menu-${win.id}`}
+                className={styles.finderContextMenu}
+                style={{
+                  left: Math.max(8, Math.min(finderMenu.x, window.innerWidth - 160)),
+                  top: Math.max(8, Math.min(finderMenu.y, window.innerHeight - 80)),
+                }}
+                role="menu"
+              >
+                <button
+                  type="button"
+                  className={styles.menuItem}
+                  role="menuitem"
+                  onClick={() => {
+                    if (sidebarView === 'desktop') {
+                      dispatch({ type: 'REMOVE_FOLDERS', ids: selectedGridIds })
+                    } else if (sidebarView === 'folder' && isTrash) {
+                      dispatch({ type: 'REMOVE_TRASH_ITEMS', ids: selectedGridIds })
+                    }
+                    setSelectedGridIds([])
+                    setFinderMenu(null)
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
