@@ -1,4 +1,10 @@
-export type FolderKind = 'about' | 'projects' | 'playground' | 'contact' | 'custom'
+export type FolderKind =
+  | 'about'
+  | 'projects'
+  | 'playground'
+  | 'contact'
+  | 'custom'
+  | 'notes'
 
 export interface DesktopFolderItem {
   id: string
@@ -6,6 +12,19 @@ export interface DesktopFolderItem {
   x: number
   y: number
   kind: FolderKind
+}
+
+export interface NoteItem {
+  id: string
+  content: string
+  createdAt: number
+}
+
+export interface WindowRestoreBounds {
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
 export interface OpenFinderWindow {
@@ -19,6 +38,9 @@ export interface OpenFinderWindow {
   /** Pixel size; omit in older snapshots — defaults applied in UI. */
   width?: number
   height?: number
+  /** Fills the desktop; double-click title bar again restores `restoreBounds`. */
+  maximized?: boolean
+  restoreBounds?: WindowRestoreBounds
 }
 
 export interface WallpaperOption {

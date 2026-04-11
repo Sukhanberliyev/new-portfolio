@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import type { DesktopFolderItem, OpenFinderWindow } from './osTypes'
+import type { DesktopFolderItem, NoteItem, OpenFinderWindow } from './osTypes'
 import type { HistoryAction } from './osHistoryReducer'
 import {
   applyResizeDelta,
@@ -8,6 +8,7 @@ import {
   type ResizeEdge,
 } from './finderLayout'
 import { FolderWindowBody } from './folderContents'
+import NotesApp from './NotesApp'
 import styles from './OSMode.module.css'
 
 const DRAG_THRESHOLD = 4
@@ -28,6 +29,8 @@ interface FinderWindowProps {
   folder: DesktopFolderItem | undefined
   dispatch: React.Dispatch<HistoryAction>
   desktopRef: React.RefObject<HTMLElement | null>
+  notes: NoteItem[]
+  selectedNoteId: string | null
 }
 
 export default function FinderWindow({
@@ -35,6 +38,8 @@ export default function FinderWindow({
   folder,
   dispatch,
   desktopRef,
+  notes,
+  selectedNoteId,
 }: FinderWindowProps) {
   const [dragVisual, setDragVisual] = useState<{ x: number; y: number } | null>(null)
   const [resizePreview, setResizePreview] = useState<{
@@ -69,6 +74,7 @@ export default function FinderWindow({
 
   const title = folder?.label ?? 'Folder'
   const baseSize = resolveFinderSize(win)
+  const isNotes = folder?.kind === 'notes'
 
   const clampMove = useCallback(
     (x: number, y: number, w: number, h: number) => {
@@ -267,8 +273,23 @@ export default function FinderWindow({
         onPointerMove={onTitlePointerMove}
         onPointerUp={onTitlePointerUp}
         onPointerCancel={onTitlePointerUp}
+        onDoubleClick={(e) => {
+          e.stopPropagation()
+          const desk = desktopRef.current
+          if (!desk) return
+          const { width, height } = desk.getBoundingClientRect()
+          dispatch({
+            type: 'TOGGLE_WINDOW_ZOOM',
+            windowId: win.id,
+            desktopWidth: width,
+            desktopHeight: height,
+          })
+        }}
       >
-        <div className={styles.traffic}>
+        <div
+          className={styles.traffic}
+          onDoubleClick={(e) => e.stopPropagation()}
+        >
           <button
             type="button"
             className={`${styles.trafficBtn} ${styles.trafficClose}`}
@@ -304,9 +325,17 @@ export default function FinderWindow({
           </span>
         </div>
       </div>
-      <div className={styles.finderBody}>
+      <div className={`${styles.finderBody} ${isNotes ? styles.notesBody : ''}`}>
         {folder ? (
-          <FolderWindowBody kind={folder.kind} />
+          isNotes ? (
+            <NotesApp
+              notes={notes}
+              selectedNoteId={selectedNoteId}
+              dispatch={dispatch}
+            />
+          ) : (
+            <FolderWindowBody kind={folder.kind} />
+          )
         ) : (
           <p className={styles.emptyState}>Folder not found.</p>
         )}

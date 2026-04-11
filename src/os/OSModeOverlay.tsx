@@ -130,6 +130,11 @@ export default function OSModeOverlay({
   const folderById = (id: string) => state.folders.find((f) => f.id === id)
   const minimizedWindows = state.windows.filter((w) => w.minimized)
   const visibleWindows = state.windows.filter((w) => !w.minimized)
+  const frontWindow =
+    visibleWindows.length > 0
+      ? visibleWindows.reduce((a, b) => (b.z > a.z ? b : a))
+      : null
+  const frontFolderKind = frontWindow ? folderById(frontWindow.folderId)?.kind ?? null : null
 
   return (
     <AnimatePresence>
@@ -160,6 +165,7 @@ export default function OSModeOverlay({
             selectedFolderId={state.selectedFolderId}
             canUndo={canUndo}
             canRedo={canRedo}
+            frontWindowKind={frontFolderKind}
           />
 
           <div
@@ -185,6 +191,8 @@ export default function OSModeOverlay({
                 folder={folderById(w.folderId)}
                 dispatch={dispatch}
                 desktopRef={desktopRef}
+                notes={state.notes}
+                selectedNoteId={state.selectedNoteId}
               />
             ))}
           </div>
@@ -192,6 +200,7 @@ export default function OSModeOverlay({
           <MinimizedWindowsBar
             windows={minimizedWindows}
             folderLabel={(folderId) => folderById(folderId)?.label}
+            folderKind={(folderId) => folderById(folderId)?.kind}
             dispatch={dispatch}
           />
 

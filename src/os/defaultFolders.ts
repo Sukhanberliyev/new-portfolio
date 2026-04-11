@@ -12,6 +12,7 @@ export function createDefaultFolders(): DesktopFolderItem[] {
     { id: 'f-projects', label: 'Projects', x: 24, y: 140, kind: 'projects' },
     { id: 'f-playground', label: 'Playground', x: 24, y: 256, kind: 'playground' },
     { id: 'f-contact', label: 'Contact', x: 24, y: 372, kind: 'contact' },
+    { id: 'f-notes', label: 'Notes', x: 120, y: 24, kind: 'notes' },
   ]
 }
 

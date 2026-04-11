@@ -34,6 +34,9 @@ function isUndoable(action: OSAction): boolean {
     case 'CLOSE_FRONT_WINDOW':
     case 'MINIMIZE_WINDOW':
     case 'RESTORE_WINDOW':
+    case 'TOGGLE_WINDOW_ZOOM':
+    case 'NEW_NOTE':
+    case 'DELETE_NOTE':
       return true
     default:
       return false

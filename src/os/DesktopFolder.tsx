@@ -145,6 +145,7 @@ export default function DesktopFolder({
 
   const left = dragVisual?.x ?? folder.x
   const top = dragVisual?.y ?? folder.y
+  const folderIcon = folder.kind === 'notes' ? '🗒️' : '📁'
 
   return (
     <div
@@ -179,7 +180,7 @@ export default function DesktopFolder({
     >
       <div className={styles.folderIconWrap}>
         <span className={styles.folderGlyph} aria-hidden>
-          📁
+          {folderIcon}
         </span>
       </div>
       {isRenaming ? (

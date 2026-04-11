@@ -3,15 +3,19 @@ import {
   nextCustomFolderId,
   nextUntitledName,
 } from './defaultFolders'
+import { createDefaultNotes, nextNoteId } from './notesData'
 import type {
   ContextMenuState,
   DesktopFolderItem,
   MenuBarId,
+  NoteItem,
   OpenFinderWindow,
 } from './osTypes'
 import {
+  clampFinderRect,
   FINDER_DEFAULT_HEIGHT,
   FINDER_DEFAULT_WIDTH,
+  resolveFinderSize,
 } from './finderLayout'
 import { DEFAULT_WALLPAPER_ID } from './wallpapers'
 
@@ -25,7 +29,11 @@ export interface OSReducerState {
   wallpaperPickerOpen: boolean
   windows: OpenFinderWindow[]
   nextWindowZ: number
+  notes: NoteItem[]
+  selectedNoteId: string | null
 }
+
+const defaultNotes = createDefaultNotes()
 
 export const initialOSState: OSReducerState = {
   wallpaperId: DEFAULT_WALLPAPER_ID,
@@ -37,6 +45,8 @@ export const initialOSState: OSReducerState = {
   wallpaperPickerOpen: false,
   windows: [],
   nextWindowZ: 10,
+  notes: defaultNotes,
+  selectedNoteId: defaultNotes[0]?.id ?? null,
 }
 
 export type OSAction =
@@ -63,12 +73,22 @@ export type OSAction =
       width: number
       height: number
     }
+  | {
+      type: 'TOGGLE_WINDOW_ZOOM'
+      windowId: string
+      desktopWidth: number
+      desktopHeight: number
+    }
   | { type: 'FOCUS_WINDOW'; windowId: string }
   | { type: 'MINIMIZE_WINDOW'; windowId: string }
   | { type: 'RESTORE_WINDOW'; windowId: string }
   | { type: 'START_RENAME_FOLDER'; id: string }
   | { type: 'CANCEL_RENAME_FOLDER' }
   | { type: 'RENAME_FOLDER'; id: string; label: string }
+  | { type: 'NEW_NOTE' }
+  | { type: 'DELETE_NOTE'; id: string }
+  | { type: 'SELECT_NOTE'; id: string | null }
+  | { type: 'UPDATE_NOTE_CONTENT'; id: string; content: string }
 
 function defaultPositionForNewFolder(folders: DesktopFolderItem[]): { x: number; y: number } {
   const baseX = 24
@@ -80,8 +100,15 @@ function defaultPositionForNewFolder(folders: DesktopFolderItem[]): { x: number;
 
 export function osReducer(state: OSReducerState, action: OSAction): OSReducerState {
   switch (action.type) {
-    case 'RESET_SESSION':
-      return { ...initialOSState, folders: createDefaultFolders() }
+    case 'RESET_SESSION': {
+      const notes = createDefaultNotes()
+      return {
+        ...initialOSState,
+        folders: createDefaultFolders(),
+        notes,
+        selectedNoteId: notes[0]?.id ?? null,
+      }
+    }
     case 'SET_WALLPAPER':
       return { ...state, wallpaperId: action.id, wallpaperPickerOpen: false }
     case 'MOVE_FOLDER':
@@ -213,7 +240,14 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
       return {
         ...state,
         windows: state.windows.map((w) =>
-          w.id === action.windowId ? { ...w, x: action.x, y: action.y } : w
+          w.id === action.windowId
+            ? {
+                ...w,
+                x: action.x,
+                y: action.y,
+                ...(w.maximized ? { maximized: false, restoreBounds: undefined } : {}),
+              }
+            : w
         ),
       }
     case 'RESIZE_WINDOW':
@@ -227,10 +261,65 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
                 y: action.y,
                 width: action.width,
                 height: action.height,
+                maximized: false,
+                restoreBounds: undefined,
               }
             : w
         ),
       }
+    case 'TOGGLE_WINDOW_ZOOM': {
+      const w = state.windows.find((win) => win.id === action.windowId)
+      if (!w) return state
+      const margin = 8
+      if (w.maximized && w.restoreBounds) {
+        const rb = w.restoreBounds
+        return {
+          ...state,
+          windows: state.windows.map((win) =>
+            win.id === action.windowId
+              ? {
+                  ...win,
+                  x: rb.x,
+                  y: rb.y,
+                  width: rb.width,
+                  height: rb.height,
+                  maximized: false,
+                  restoreBounds: undefined,
+                  z: state.nextWindowZ,
+                }
+              : win
+          ),
+          nextWindowZ: state.nextWindowZ + 1,
+        }
+      }
+      const size = resolveFinderSize(w)
+      const full = clampFinderRect(
+        action.desktopWidth,
+        action.desktopHeight,
+        margin,
+        margin,
+        action.desktopWidth - margin * 2,
+        action.desktopHeight - margin * 2
+      )
+      return {
+        ...state,
+        windows: state.windows.map((win) =>
+          win.id === action.windowId
+            ? {
+                ...win,
+                restoreBounds: { x: w.x, y: w.y, width: size.width, height: size.height },
+                x: full.x,
+                y: full.y,
+                width: full.width,
+                height: full.height,
+                maximized: true,
+                z: state.nextWindowZ,
+              }
+            : win
+        ),
+        nextWindowZ: state.nextWindowZ + 1,
+      }
+    }
     case 'FOCUS_WINDOW':
       return {
         ...state,
@@ -289,6 +378,42 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
         ),
       }
     }
+    case 'NEW_NOTE': {
+      const note: NoteItem = {
+        id: nextNoteId(),
+        content: '',
+        createdAt: Date.now(),
+      }
+      return {
+        ...state,
+        notes: [note, ...state.notes],
+        selectedNoteId: note.id,
+      }
+    }
+    case 'DELETE_NOTE': {
+      const idx = state.notes.findIndex((n) => n.id === action.id)
+      if (idx === -1) return state
+      const nextNotes = state.notes.filter((n) => n.id !== action.id)
+      let nextSelected = state.selectedNoteId
+      if (action.id === state.selectedNoteId) {
+        const candidate = nextNotes[idx] ?? nextNotes[idx - 1] ?? null
+        nextSelected = candidate?.id ?? null
+      }
+      return {
+        ...state,
+        notes: nextNotes,
+        selectedNoteId: nextSelected,
+      }
+    }
+    case 'SELECT_NOTE':
+      return { ...state, selectedNoteId: action.id }
+    case 'UPDATE_NOTE_CONTENT':
+      return {
+        ...state,
+        notes: state.notes.map((n) =>
+          n.id === action.id ? { ...n, content: action.content } : n
+        ),
+      }
     default:
       return state
   }

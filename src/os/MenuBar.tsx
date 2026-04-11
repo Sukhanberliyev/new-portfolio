@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useState } from 'react'
-import type { MenuBarId } from './osTypes'
+import type { FolderKind, MenuBarId } from './osTypes'
 import type { HistoryAction } from './osHistoryReducer'
 import styles from './OSMode.module.css'
 
@@ -9,6 +9,7 @@ interface MenuBarProps {
   selectedFolderId: string | null
   canUndo: boolean
   canRedo: boolean
+  frontWindowKind: FolderKind | null
 }
 
 function formatMenuClock(now: Date): string {
@@ -22,7 +23,7 @@ function formatMenuClock(now: Date): string {
 }
 
 const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
-  { activeMenu, dispatch, selectedFolderId, canUndo, canRedo },
+  { activeMenu, dispatch, selectedFolderId, canUndo, canRedo, frontWindowKind },
   ref
 ) {
   const [now, setNow] = useState(() => new Date())
@@ -35,6 +36,8 @@ const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
   const toggle = (id: MenuBarId) => {
     dispatch({ type: 'SET_ACTIVE_MENU', menu: activeMenu === id ? null : id })
   }
+
+  const notesMenuActive = frontWindowKind === 'notes'
 
   return (
     <header ref={ref} className={styles.menuBar}>
@@ -78,6 +81,21 @@ const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
           </button>
           {activeMenu === 'file' && (
             <div className={styles.dropdown}>
+              {notesMenuActive && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    onClick={() => {
+                      dispatch({ type: 'NEW_NOTE' })
+                      dispatch({ type: 'SET_ACTIVE_MENU', menu: null })
+                    }}
+                  >
+                    New Note
+                  </button>
+                  <div className={styles.menuSep} />
+                </>
+              )}
               <button
                 type="button"
                 className={styles.menuItem}

@@ -1,16 +1,18 @@
-import type { OpenFinderWindow } from './osTypes'
+import type { FolderKind, OpenFinderWindow } from './osTypes'
 import type { HistoryAction } from './osHistoryReducer'
 import styles from './OSMode.module.css'
 
 interface MinimizedWindowsBarProps {
   windows: OpenFinderWindow[]
   folderLabel: (folderId: string) => string | undefined
+  folderKind: (folderId: string) => FolderKind | undefined
   dispatch: React.Dispatch<HistoryAction>
 }
 
 export default function MinimizedWindowsBar({
   windows,
   folderLabel,
+  folderKind,
   dispatch,
 }: MinimizedWindowsBarProps) {
   if (windows.length === 0) return null
@@ -25,6 +27,8 @@ export default function MinimizedWindowsBar({
     >
       {ordered.map((w) => {
         const label = folderLabel(w.folderId) ?? 'Folder'
+        const kind = folderKind(w.folderId)
+        const icon = kind === 'notes' ? '🗒️' : '📁'
         return (
           <button
             key={w.id}
@@ -34,7 +38,7 @@ export default function MinimizedWindowsBar({
             title={`Open ${label}`}
           >
             <span className={styles.minimizedTileIcon} aria-hidden>
-              📁
+              {icon}
             </span>
             <span className={styles.minimizedTileLabel}>{label}</span>
           </button>
