@@ -381,16 +381,36 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: rgba(10, 10, 10, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  padding: 6px;
+  background: #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
   box-shadow:
-    0 0 0 0.5px rgba(255, 255, 255, 0.08) inset,
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    0 24px 60px rgba(0, 0, 0, 0.45);
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    0 24px 60px rgba(0, 0, 0, 0.6);
   overflow: visible;
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+}
+
+/* Sidebar background strip — unified card covering toolbar + items rows */
+.sidebarBg {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  width: var(--sidebar-w, 220px);
+  background: #121212;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition:
+    width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.18s ease;
+}
+
+.sidebarBgCollapsed {
+  opacity: 0;
+  width: 0;
 }
 
 .resizeHandles {
@@ -482,14 +502,35 @@
 
 .finderHeader {
   position: relative;
-  z-index: 50;
+  z-index: 2;
   display: flex;
   align-items: center;
-  min-height: 52px;
-  padding: 10px 18px 10px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0 6px;
   cursor: default;
   user-select: none;
   flex-shrink: 0;
+}
+
+.finderBreadcrumbWrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding-left: var(--breadcrumb-pad, 12px);
+  transition: padding-left 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.finderBreadcrumb {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Collapsed: traffic + toolbar + inline title in one row (matches macOS narrow toolbar). */
@@ -594,6 +635,19 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  opacity: 1;
+  max-width: 400px;
+  transition:
+    opacity 0.18s ease,
+    max-width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+    margin-left 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.finderHeaderTitleHidden {
+  opacity: 0;
+  max-width: 0;
+  margin-left: -14px;
+  pointer-events: none;
 }
 
 /* Pane title in the top bar (expanded); insets align with .finderContent horizontal padding. */
@@ -612,54 +666,14 @@
 
 .finderBody {
   position: relative;
-  z-index: 40;
+  z-index: 2;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
-  background: transparent;
-  border-radius: 0 0 8px 8px;
-}
-
-/* Expanded: sidebar (with toolbar inside) + pane title row share one grid so baselines align. */
-.finderBodyExpanded {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  grid-template-rows: auto 1fr;
-  column-gap: 1px;
-  row-gap: 0;
-  padding: 0;
-}
-
-.finderBodyExpanded .finderSidebar {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-}
-
-.finderBodyExpanded .finderPaneHeaderCell {
-  grid-column: 2;
-  grid-row: 1;
-  width: 100%;
-}
-
-.finderBodyExpanded .finderPane {
-  grid-column: 2;
-  grid-row: 2;
-  min-height: 0;
-  width: 100%;
-  border-radius: 0 0 6px 6px;
-  color: rgba(9, 9, 11, 1);
-}
-
-.finderBodyCollapsed {
   display: flex;
-  flex-direction: column;
-  padding: 0;
-  gap: 0;
-}
-
-.finderBodyCollapsed .finderPane {
-  flex: 1;
-  min-height: 0;
+  gap: 6px;
+  margin-top: 6px;
+  overflow: visible;
+  background: transparent;
 }
 
 /* Toolbar row lives inside the sidebar in expanded layout (see reference UIs). */
@@ -678,27 +692,54 @@
 .finderPaneHeaderCell {
   display: flex;
   align-items: center;
-  min-height: 44px;
+  min-height: 36px;
+  height: 36px;
   padding: 0;
   box-sizing: border-box;
   cursor: default;
   user-select: none;
   background-color: rgba(23, 23, 23, 1);
   border-radius: 6px 6px 0 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition:
+    height 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+    min-height 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.18s ease;
+}
+
+.finderPaneHeaderCellCollapsed {
+  height: 0;
+  min-height: 0;
+  opacity: 0;
 }
 
 .finderSidebar {
-  width: 100%;
-  min-width: 240px;
+  width: var(--sidebar-w, 220px);
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
   padding: 6px;
   gap: 0;
-  background: unset;
+  /* Background comes from .sidebarBg strip — sidebar itself is transparent */
+  background: transparent;
+  border: none;
   border-radius: 0;
-  color: rgba(255, 255, 255, 0);
+  color: rgba(255, 255, 255, 0.95);
   overflow: hidden;
+  opacity: 1;
+  transition:
+    width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+    padding 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.18s ease;
+}
+
+.finderSidebarCollapsed {
+  padding-left: 0;
+  padding-right: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .finderSidebarSection {
@@ -709,6 +750,11 @@
   min-height: 0;
   padding-top: 12px;
   overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.finderSidebarSection::-webkit-scrollbar {
+  display: none;
 }
 
 .finderSidebarTitle {
@@ -774,13 +820,14 @@
   display: flex;
   flex-direction: column;
   padding-top: 0;
-  background: #171717;
-  border-radius: 16px;
+  background: #0c0c0c;
+  border: none;
+  border-radius: 8px;
   overflow: hidden;
 }
 
 .finderPaneCollapsed {
-  border-radius: 0 0 8px 8px;
+  border-radius: 8px;
 }
 
 .finderContent {
@@ -792,8 +839,13 @@
   padding: 12px 22px 22px;
   overflow-y: auto;
   overflow-x: hidden;
-  background: rgba(23, 23, 23, 1);
+  background: #0c0c0c;
   color: rgba(255, 255, 255, 0.9);
+  scrollbar-width: none;
+}
+
+.finderContent::-webkit-scrollbar {
+  display: none;
 }
 
 .finderContentNotes {

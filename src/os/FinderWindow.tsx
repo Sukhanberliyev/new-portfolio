@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type Dispatch,
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -699,13 +700,20 @@ export default function FinderWindow({
         width: fw,
         height: fh,
         zIndex: win.z,
-      }}
+        ['--sidebar-w' as string]: sidebarCollapsed ? '0px' : '220px',
+      } as CSSProperties}
       onPointerDown={onWindowPointerDown}
       onContextMenu={(e) => {
         e.preventDefault()
         e.stopPropagation()
       }}
     >
+      {/* Sidebar background strip — covers toolbar row + items row as one card */}
+      <div
+        className={`${styles.sidebarBg} ${sidebarCollapsed ? styles.sidebarBgCollapsed : ''}`}
+        aria-hidden
+      />
+
       <div className={styles.resizeHandles}>
         {RESIZE_HANDLES.map(({ edge, className, label }) => (
           <button
@@ -721,50 +729,41 @@ export default function FinderWindow({
           />
         ))}
       </div>
-      {sidebarCollapsed && (
-        <div className={styles.finderHeader} {...titleBarDragProps}>
-          <div className={styles.finderHeaderRowCollapsed}>
-            <div className={styles.finderHeaderLeft}>
-              {headerChrome}
-              <div className={styles.finderHeaderTitle}>{currentViewTitle}</div>
-            </div>
-          </div>
-        </div>
-      )}
       <div
-        className={`${styles.finderBody} ${sidebarCollapsed ? styles.finderBodyCollapsed : styles.finderBodyExpanded}`}
+        className={styles.finderHeader}
+        style={{ ['--breadcrumb-pad' as string]: sidebarCollapsed ? '12px' : '50px' } as CSSProperties}
+        {...titleBarDragProps}
       >
-        {!sidebarCollapsed && (
-          <aside className={styles.finderSidebar} aria-label="Finder sidebar">
-            <div className={styles.finderSidebarTop} {...titleBarDragProps}>
-              <div className={styles.finderHeaderLeft}>{headerChrome}</div>
-            </div>
-            <div className={styles.finderSidebarSection}>
-              {sidebarItems.map((item) => (
-                <button
-                  key={item.view}
-                  type="button"
-                  className={`${styles.finderSidebarItem} ${sidebarView === item.view ? styles.finderSidebarItemActive : ''}`}
-                  onClick={() => {
-                    setSidebarView(item.view)
-                  }}
-                >
-                  <span className={styles.finderSidebarIcon} aria-hidden>
-                    {item.icon}
-                  </span>
-                  <span className={styles.finderSidebarLabel}>{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </aside>
-        )}
-        {!sidebarCollapsed && (
-          <div className={styles.finderPaneHeaderCell} {...titleBarDragProps}>
-            {!notesContentActive && !isTrash && (
-              <div className={styles.finderPaneHeaderTitle}>{currentViewTitle}</div>
-            )}
+        <div className={styles.finderHeaderLeft}>{headerChrome}</div>
+        <div className={styles.finderBreadcrumbWrap}>
+          <div className={styles.finderBreadcrumb}>{currentViewTitle}</div>
+        </div>
+      </div>
+      <div className={styles.finderBody}>
+        <aside
+          className={`${styles.finderSidebar} ${sidebarCollapsed ? styles.finderSidebarCollapsed : ''}`}
+          aria-label="Finder sidebar"
+          aria-hidden={sidebarCollapsed}
+        >
+          <div className={styles.finderSidebarSection}>
+            {sidebarItems.map((item) => (
+              <button
+                key={item.view}
+                type="button"
+                className={`${styles.finderSidebarItem} ${sidebarView === item.view ? styles.finderSidebarItemActive : ''}`}
+                onClick={() => {
+                  setSidebarView(item.view)
+                }}
+                tabIndex={sidebarCollapsed ? -1 : 0}
+              >
+                <span className={styles.finderSidebarIcon} aria-hidden>
+                  {item.icon}
+                </span>
+                <span className={styles.finderSidebarLabel}>{item.label}</span>
+              </button>
+            ))}
           </div>
-        )}
+        </aside>
         <div
           className={`${styles.finderPane} ${sidebarCollapsed ? styles.finderPaneCollapsed : ''}`}
         >
