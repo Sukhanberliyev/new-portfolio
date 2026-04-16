@@ -6,8 +6,7 @@ export const WALLPAPERS: WallpaperOption[] = [
   {
     id: 'sequoia',
     name: 'Sequoia',
-    background:
-      'linear-gradient(165deg, #1a3a52 0%, #2d5a7b 25%, #4a8fb8 45%, #87b8d4 65%, #c4a574 85%, #d4b896 100%)',
+    background: '#000000',
   },
   {
     id: 'ventura',
