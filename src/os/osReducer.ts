@@ -265,7 +265,10 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
       const w: OpenFinderWindow = {
         id: `win-${action.folderId}-${state.nextWindowZ}`,
         folderId: action.folderId,
-        x: Math.min(120 + state.windows.length * 24, typeof window !== 'undefined' ? window.innerWidth - 400 : 480),
+        x: Math.min(
+          120 + state.windows.length * 24,
+          typeof window !== 'undefined' ? window.innerWidth - FINDER_DEFAULT_WIDTH : 480
+        ),
         y: 80 + state.windows.length * 28,
         z: state.nextWindowZ,
         minimized: false,

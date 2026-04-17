@@ -379,16 +379,16 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding: 6px;
-  background: #0c0c0c;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    0 24px 60px rgba(0, 0, 0, 0.6);
+  min-width: 580px;
+  min-height: 360px;
+  padding: 4px;
+  background: #0a0a0a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(10, 10, 10, 0.08);
   overflow: visible;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
 }
 
 /* Sidebar background strip — unified card covering toolbar + items rows */
@@ -396,13 +396,16 @@
   position: absolute;
   z-index: 0;
   pointer-events: none;
-  left: 6px;
-  top: 6px;
-  bottom: 6px;
-  width: var(--sidebar-w, 220px);
-  background: #121212;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: var(--sidebar-w, 240px);
+  background: #171717;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  box-shadow: 0 8px 16px rgba(10, 10, 10, 0.08);
   transition:
     width 0.28s cubic-bezier(0.32, 0.72, 0, 1),
     opacity 0.18s ease;
@@ -505,9 +508,10 @@
   z-index: 2;
   display: flex;
   align-items: center;
-  min-height: 36px;
-  height: 36px;
-  padding: 0 6px;
+  min-height: 44px;
+  height: 44px;
+  padding: 12px 0;
+  box-sizing: border-box;
   cursor: default;
   user-select: none;
   flex-shrink: 0;
@@ -518,14 +522,15 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  padding-left: var(--breadcrumb-pad, 12px);
-  transition: padding-left 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  padding: 0 24px;
 }
 
 .finderBreadcrumb {
-  min-width: 0;
+  width: 186px;
+  max-width: 100%;
   font-size: 13px;
   font-weight: 500;
+  line-height: 20px;
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.92);
   white-space: nowrap;
@@ -545,22 +550,29 @@
 .finderHeaderLeft {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+  width: 244px;
+  padding: 0 16px;
+  box-sizing: border-box;
   min-width: 0;
+}
+
+.finderHeaderLeftCollapsed {
+  width: fit-content;
 }
 
 .traffic {
   position: relative;
   z-index: 2;
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
   flex-shrink: 0;
 }
 
 .trafficBtn {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   border: none;
   padding: 0;
@@ -587,13 +599,13 @@
 .finderToolbarLeft {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
 .finderToolbarIcon {
-  width: 28px;
-  height: 28px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -621,8 +633,8 @@
 }
 
 .finderIconSvg {
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
 
@@ -670,8 +682,8 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 4px;
+  margin-top: 4px;
   overflow: visible;
   background: transparent;
 }
@@ -715,7 +727,7 @@
 }
 
 .finderSidebar {
-  width: var(--sidebar-w, 220px);
+  width: var(--sidebar-w, 240px);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -745,10 +757,10 @@
 .finderSidebarSection {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   flex: 1;
   min-height: 0;
-  padding-top: 12px;
+  padding: 6px;
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -764,15 +776,16 @@
 .finderSidebarItem {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 6px;
   min-height: 32px;
   height: 32px;
-  padding: 0 10px;
-  border-radius: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
   border: none;
   background: transparent;
   font-size: 13px;
   font-weight: 500;
+  line-height: 20px;
   color: rgba(255, 255, 255, 0.94);
   text-align: left;
   cursor: default;
@@ -795,8 +808,8 @@
 }
 
 .finderSidebarIcon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -820,14 +833,14 @@
   display: flex;
   flex-direction: column;
   padding-top: 0;
-  background: #0c0c0c;
+  background: #0a0a0a;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
 }
 
 .finderPaneCollapsed {
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .finderContent {
@@ -836,10 +849,10 @@
   width: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 12px 22px 22px;
+  padding: 0 24px 10px;
   overflow-y: auto;
   overflow-x: hidden;
-  background: #0c0c0c;
+  background: #0a0a0a;
   color: rgba(255, 255, 255, 0.9);
   scrollbar-width: none;
 }

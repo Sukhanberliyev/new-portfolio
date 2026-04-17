@@ -700,7 +700,7 @@ export default function FinderWindow({
         width: fw,
         height: fh,
         zIndex: win.z,
-        ['--sidebar-w' as string]: sidebarCollapsed ? '0px' : '220px',
+        ['--sidebar-w' as string]: sidebarCollapsed ? '0px' : '240px',
       } as CSSProperties}
       onPointerDown={onWindowPointerDown}
       onContextMenu={(e) => {
@@ -729,12 +729,12 @@ export default function FinderWindow({
           />
         ))}
       </div>
-      <div
-        className={styles.finderHeader}
-        style={{ ['--breadcrumb-pad' as string]: sidebarCollapsed ? '12px' : '50px' } as CSSProperties}
-        {...titleBarDragProps}
-      >
-        <div className={styles.finderHeaderLeft}>{headerChrome}</div>
+      <div className={styles.finderHeader} {...titleBarDragProps}>
+        <div
+          className={`${styles.finderHeaderLeft} ${sidebarCollapsed ? styles.finderHeaderLeftCollapsed : ''}`}
+        >
+          {headerChrome}
+        </div>
         <div className={styles.finderBreadcrumbWrap}>
           <div className={styles.finderBreadcrumb}>{currentViewTitle}</div>
         </div>

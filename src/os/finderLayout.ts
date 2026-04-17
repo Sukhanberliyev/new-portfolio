@@ -1,8 +1,8 @@
 /** Default Finder window size (matches prior fixed layout). */
-export const FINDER_DEFAULT_WIDTH = 400
+export const FINDER_DEFAULT_WIDTH = 580
 export const FINDER_DEFAULT_HEIGHT = 360
-export const FINDER_MIN_WIDTH = 260
-export const FINDER_MIN_HEIGHT = 196
+export const FINDER_MIN_WIDTH = 580
+export const FINDER_MIN_HEIGHT = 360
 
 export type ResizeEdge = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
 
