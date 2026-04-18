@@ -234,6 +234,11 @@ export default function OSModeOverlay({
   const frontFolderKind = frontWindow ? folderById(frontWindow.folderId)?.kind ?? null : null
   const multiSelect = state.selectedFolderIds.length > 1
 
+  useEffect(() => {
+    if (!open) return
+    dispatch({ type: 'SET_ACTIVE_MENU', menu: null })
+  }, [open, frontFolderKind, dispatch])
+
   return (
     <AnimatePresence>
       {open && (

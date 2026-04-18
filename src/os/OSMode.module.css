@@ -522,11 +522,13 @@
   min-width: 0;
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: 0 24px;
 }
 
 .finderBreadcrumb {
-  width: 186px;
+  flex: 1 1 auto;
+  min-width: 0;
   max-width: 100%;
   font-size: 13px;
   font-weight: 500;
@@ -536,6 +538,32 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.finderBreadcrumbTrash {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #fff;
+  cursor: default;
+  transition: background 0.12s ease;
+}
+
+.finderBreadcrumbTrash:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.finderBreadcrumbTrashIcon {
+  width: 12px;
+  height: 12px;
+  display: block;
 }
 
 /* Collapsed: traffic + toolbar + inline title in one row (matches macOS narrow toolbar). */
@@ -613,14 +641,16 @@
   color: rgba(255, 255, 255, 0.82);
   background: transparent;
   border: none;
-  border-radius: 0;
+  border-radius: 4px;
   cursor: default;
   transition:
+    background 0.12s ease,
     color 0.12s ease,
     opacity 0.12s ease;
 }
 
 .finderToolbarIcon:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 1);
 }
 
@@ -767,6 +797,104 @@
 
 .finderSidebarSection::-webkit-scrollbar {
   display: none;
+}
+
+.notesFinderSidebarHead {
+  flex-shrink: 0;
+  padding: 6px 10px 8px;
+}
+
+.notesFinderNewButton {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.94);
+  cursor: default;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.notesFinderNewButton:hover {
+  background: rgba(120, 160, 255, 0.22);
+  border-color: rgba(160, 190, 255, 0.35);
+}
+
+.notesFinderSidebarList {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 6px 10px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.notesFinderSidebarList::-webkit-scrollbar {
+  display: none;
+}
+
+.notesFinderEmpty {
+  margin: 0;
+  padding: 12px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.notesFinderRow {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: default;
+  transition: background 0.12s ease;
+}
+
+.notesFinderRow:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.notesFinderRowActive {
+  background: rgba(100, 150, 255, 0.2);
+}
+
+.notesFinderRowActive:hover {
+  background: rgba(100, 150, 255, 0.26);
+}
+
+.notesFinderRowTitle {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notesFinderRowPreview {
+  font-size: 11px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.48);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .finderSidebarTitle {
@@ -1246,154 +1374,37 @@
   height: 100%;
   min-height: 0;
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(180px, 240px) 1fr;
-}
-
-.notesList {
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  background: rgba(255, 255, 255, 0.7);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.notesListHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.notesListHeading {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.notesAddButton {
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.7);
-  color: rgba(0, 0, 0, 0.72);
-  cursor: default;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.notesAddButton:hover {
-  background: rgba(0, 100, 220, 0.12);
-  border-color: rgba(0, 100, 220, 0.35);
-  color: rgba(0, 80, 180, 0.95);
-}
-
-.notesListItems {
-  flex: 1;
-  min-height: 0;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-}
-
-.notesListEmpty {
-  padding: 16px 8px;
-  font-size: 12px;
-  text-align: center;
-  color: rgba(0, 0, 0, 0.45);
-}
-
-.noteRow {
-  text-align: left;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.6);
-  cursor: default;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.noteRow:hover {
-  background: rgba(255, 255, 255, 0.9);
-}
-
-.noteRowActive {
-  background: rgba(0, 100, 220, 0.12);
-  border-color: rgba(0, 100, 220, 0.35);
-}
-
-.noteRowTitle {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.78);
-}
-
-.noteRowPreview {
-  font-size: 11px;
-  color: rgba(0, 0, 0, 0.55);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-height: 1.35;
 }
 
 .notesEditor {
+  flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: rgba(255, 255, 255, 0.55);
+  background: transparent;
 }
 
 .notesEditorHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-start;
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  min-height: 40px;
+  box-sizing: border-box;
 }
 
 .notesEditorTitle {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.7);
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.72);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.notesDeleteButton {
-  padding: 5px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: 6px;
-  border: 1px solid rgba(200, 60, 60, 0.25);
-  background: rgba(255, 95, 87, 0.16);
-  color: rgba(120, 0, 0, 0.7);
-  cursor: default;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.notesDeleteButton:hover {
-  background: rgba(255, 95, 87, 0.26);
-  border-color: rgba(200, 60, 60, 0.4);
 }
 
 .notesTextarea {
@@ -1407,8 +1418,12 @@
   font-family: inherit;
   font-size: 13px;
   line-height: 1.55;
-  color: rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.88);
   background: transparent;
+}
+
+.notesTextarea::placeholder {
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .notesEmpty {
@@ -1421,7 +1436,7 @@
   gap: 10px;
   padding: 24px;
   text-align: center;
-  color: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .notesEmptyText {

@@ -19,7 +19,7 @@ import {
   type ResizeEdge,
 } from './finderLayout'
 import { FolderWindowBody } from './folderContents'
-import NotesApp from './NotesApp'
+import NotesApp, { getNotePreview, getNoteTitle } from './NotesApp'
 import styles from './OSMode.module.css'
 
 const DRAG_THRESHOLD = 4
@@ -126,6 +126,27 @@ function DownloadsIcon() {
       <path d="m5.2 7.8 2.8 2.9 2.8-2.9" />
       <path d="M3.1 13.2h9.8" />
     </FinderIcon>
+  )
+}
+
+function NotesTrashIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M2.5 4h11" />
+      <path d="M5.5 4V3a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 10.5 3v1" />
+      <path d="M12.5 4v8.5a1.5 1.5 0 0 1-1.5 1.5h-6A1.5 1.5 0 0 1 3.5 12.5V4" />
+      <path d="M6.5 7.5v4" />
+      <path d="M9.5 7.5v4" />
+    </svg>
   )
 }
 
@@ -737,32 +758,91 @@ export default function FinderWindow({
         </div>
         <div className={styles.finderBreadcrumbWrap}>
           <div className={styles.finderBreadcrumb}>{currentViewTitle}</div>
+          {notesContentActive && selectedNoteId ? (
+            <button
+              type="button"
+              className={styles.finderBreadcrumbTrash}
+              aria-label="Delete note"
+              title="Delete note"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                dispatch({ type: 'DELETE_NOTE', id: selectedNoteId })
+              }}
+            >
+              <NotesTrashIcon className={styles.finderBreadcrumbTrashIcon} />
+            </button>
+          ) : null}
         </div>
       </div>
       <div className={styles.finderBody}>
         <aside
           className={`${styles.finderSidebar} ${sidebarCollapsed ? styles.finderSidebarCollapsed : ''}`}
-          aria-label="Finder sidebar"
+          aria-label={notesContentActive ? 'Notes list' : 'Finder sidebar'}
           aria-hidden={sidebarCollapsed}
         >
-          <div className={styles.finderSidebarSection}>
-            {sidebarItems.map((item) => (
-              <button
-                key={item.view}
-                type="button"
-                className={`${styles.finderSidebarItem} ${sidebarView === item.view ? styles.finderSidebarItemActive : ''}`}
-                onClick={() => {
-                  setSidebarView(item.view)
-                }}
-                tabIndex={sidebarCollapsed ? -1 : 0}
-              >
-                <span className={styles.finderSidebarIcon} aria-hidden>
-                  {item.icon}
-                </span>
-                <span className={styles.finderSidebarLabel}>{item.label}</span>
-              </button>
-            ))}
-          </div>
+          {notesContentActive ? (
+            <>
+              <div className={styles.notesFinderSidebarHead}>
+                <button
+                  type="button"
+                  className={styles.notesFinderNewButton}
+                  onClick={() => dispatch({ type: 'NEW_NOTE' })}
+                  tabIndex={sidebarCollapsed ? -1 : 0}
+                >
+                  New Note
+                </button>
+              </div>
+              <div className={styles.notesFinderSidebarList} role="list">
+                {notes.length === 0 ? (
+                  <p className={styles.notesFinderEmpty} role="presentation">
+                    No notes yet.
+                  </p>
+                ) : (
+                  notes.map((note) => {
+                    const isSel = note.id === selectedNoteId
+                    return (
+                      <button
+                        key={note.id}
+                        type="button"
+                        role="listitem"
+                        className={`${styles.notesFinderRow} ${isSel ? styles.notesFinderRowActive : ''}`}
+                        onClick={() => dispatch({ type: 'SELECT_NOTE', id: note.id })}
+                        aria-current={isSel ? 'true' : undefined}
+                        tabIndex={sidebarCollapsed ? -1 : 0}
+                      >
+                        <span className={styles.notesFinderRowTitle}>
+                          {getNoteTitle(note.content)}
+                        </span>
+                        <span className={styles.notesFinderRowPreview}>
+                          {getNotePreview(note.content)}
+                        </span>
+                      </button>
+                    )
+                  })
+                )}
+              </div>
+            </>
+          ) : (
+            <div className={styles.finderSidebarSection}>
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.view}
+                  type="button"
+                  className={`${styles.finderSidebarItem} ${sidebarView === item.view ? styles.finderSidebarItemActive : ''}`}
+                  onClick={() => {
+                    setSidebarView(item.view)
+                  }}
+                  tabIndex={sidebarCollapsed ? -1 : 0}
+                >
+                  <span className={styles.finderSidebarIcon} aria-hidden>
+                    {item.icon}
+                  </span>
+                  <span className={styles.finderSidebarLabel}>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </aside>
         <div
           className={`${styles.finderPane} ${sidebarCollapsed ? styles.finderPaneCollapsed : ''}`}

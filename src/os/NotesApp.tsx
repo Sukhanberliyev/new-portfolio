@@ -9,14 +9,14 @@ interface NotesAppProps {
   dispatch: React.Dispatch<HistoryAction>
 }
 
-function getNoteTitle(content: string): string {
+export function getNoteTitle(content: string): string {
   const trimmed = content.trim()
   if (!trimmed) return 'New Note'
   const [firstLine] = trimmed.split('\n')
   return firstLine.slice(0, 52)
 }
 
-function getNotePreview(content: string): string {
+export function getNotePreview(content: string): string {
   const trimmed = content.trim()
   if (!trimmed) return 'Empty note'
   const lines = trimmed.split('\n')
@@ -41,42 +41,12 @@ export default function NotesApp({ notes, selectedNoteId, dispatch }: NotesAppPr
     }
   }, [activeNote?.id])
 
-  const createNote = () => dispatch({ type: 'NEW_NOTE' })
+  const createNote = () => {
+    dispatch({ type: 'NEW_NOTE' })
+  }
 
   return (
     <div className={styles.notesLayout}>
-      <aside className={styles.notesList} aria-label="Notes list">
-        <div className={styles.notesListHeader}>
-          <span className={styles.notesListHeading}>Notes</span>
-          <button type="button" className={styles.notesAddButton} onClick={createNote}>
-            New Note
-          </button>
-        </div>
-        <div className={styles.notesListItems}>
-          {notes.length === 0 ? (
-            <div className={styles.notesListEmpty}>No notes yet.</div>
-          ) : (
-            notes.map((note) => {
-              const isActive = note.id === activeNote?.id
-              return (
-                <button
-                  key={note.id}
-                  type="button"
-                  className={`${styles.noteRow} ${isActive ? styles.noteRowActive : ''}`}
-                  onClick={() => dispatch({ type: 'SELECT_NOTE', id: note.id })}
-                  aria-pressed={isActive}
-                >
-                  <span className={styles.noteRowTitle}>{getNoteTitle(note.content)}</span>
-                  <span className={styles.noteRowPreview}>
-                    {getNotePreview(note.content)}
-                  </span>
-                </button>
-              )
-            })
-          )}
-        </div>
-      </aside>
-
       <section className={styles.notesEditor} aria-label="Note editor">
         {activeNote ? (
           <>
@@ -84,13 +54,6 @@ export default function NotesApp({ notes, selectedNoteId, dispatch }: NotesAppPr
               <span className={styles.notesEditorTitle}>
                 {getNoteTitle(activeNote.content)}
               </span>
-              <button
-                type="button"
-                className={styles.notesDeleteButton}
-                onClick={() => dispatch({ type: 'DELETE_NOTE', id: activeNote.id })}
-              >
-                Delete
-              </button>
             </div>
             <textarea
               ref={editorRef}

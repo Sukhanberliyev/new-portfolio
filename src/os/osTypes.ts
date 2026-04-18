@@ -57,4 +57,4 @@ export interface ContextMenuState {
   folderId?: string
 }
 
-export type MenuBarId = 'finder' | 'file' | 'edit' | 'view' | 'go' | 'help'
+export type MenuBarId = 'finder' | 'notes' | 'file' | 'edit' | 'view' | 'go' | 'help'

@@ -47,6 +47,7 @@ const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
   }
 
   const notesMenuActive = frontWindowKind === 'notes'
+  const appMenu: MenuBarId = notesMenuActive ? 'notes' : 'finder'
 
   return (
     <header ref={ref} className={styles.menuBar}>
@@ -54,12 +55,12 @@ const MenuBar = forwardRef<HTMLElement, MenuBarProps>(function MenuBar(
         <div className={styles.menuWrap}>
           <button
             type="button"
-            className={`${styles.menuTrigger} ${styles.menuTriggerBold} ${activeMenu === 'finder' ? styles.menuTriggerActive : ''}`}
-            onClick={() => toggle('finder')}
+            className={`${styles.menuTrigger} ${styles.menuTriggerBold} ${activeMenu === appMenu ? styles.menuTriggerActive : ''}`}
+            onClick={() => toggle(appMenu)}
           >
-            Finder
+            {notesMenuActive ? 'Notes' : 'Finder'}
           </button>
-          {activeMenu === 'finder' && (
+          {activeMenu === appMenu && (
             <div className={styles.dropdown}>
               <button
                 type="button"
