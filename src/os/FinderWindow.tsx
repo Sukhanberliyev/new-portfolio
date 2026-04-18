@@ -20,6 +20,8 @@ import {
 } from './finderLayout'
 import { FolderWindowBody } from './folderContents'
 import NotesApp, { getNotePreview, getNoteTitle } from './NotesApp'
+import CalculatorApp from './CalculatorApp'
+import CalendarApp from './CalendarApp'
 import styles from './OSMode.module.css'
 
 const DRAG_THRESHOLD = 4
@@ -159,7 +161,23 @@ interface FinderWindowProps {
   selectedNoteId: string | null
   folders: DesktopFolderItem[]
   notesFolder: DesktopFolderItem | undefined
+  applications: DesktopFolderItem[]
   trashedFolders: DesktopFolderItem[]
+}
+
+function iconForKind(kind: DesktopFolderItem['kind']): string {
+  switch (kind) {
+    case 'notes':
+      return '🗒️'
+    case 'trash':
+      return '🗑️'
+    case 'calculator':
+      return '🧮'
+    case 'calendar':
+      return '📅'
+    default:
+      return '📁'
+  }
 }
 
 type SidebarView = 'folder' | 'desktop' | 'applications' | 'documents' | 'downloads'
@@ -173,6 +191,7 @@ export default function FinderWindow({
   selectedNoteId,
   folders,
   notesFolder,
+  applications,
   trashedFolders,
 }: FinderWindowProps) {
   const [dragVisual, setDragVisual] = useState<{ x: number; y: number } | null>(null)
@@ -210,6 +229,9 @@ export default function FinderWindow({
   const baseSize = resolveFinderSize(win)
   const isNotes = folder?.kind === 'notes'
   const isTrash = folder?.kind === 'trash'
+  const isCalculator = folder?.kind === 'calculator'
+  const isCalendar = folder?.kind === 'calendar'
+  const isApp = isCalculator || isCalendar
   const [sidebarView, setSidebarView] = useState<SidebarView>('folder')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [selectedGridIds, setSelectedGridIds] = useState<string[]>([])
@@ -555,26 +577,33 @@ export default function FinderWindow({
             ))}
           </div>
         )
-      case 'applications':
+      case 'applications': {
+        const appItems: DesktopFolderItem[] = [
+          ...(notesFolder ? [notesFolder] : []),
+          ...applications,
+        ]
+        if (appItems.length === 0) {
+          return <p className={styles.emptyState}>No applications available.</p>
+        }
         return (
           <div className={styles.finderGrid}>
-            {notesFolder ? (
+            {appItems.map((item) => (
               <button
+                key={item.id}
                 type="button"
-                className={`${styles.finderGridItem} ${selectedGridIds.includes('app-notes') ? styles.finderGridItemSelected : ''}`}
-                data-grid-id="app-notes"
-                onClick={() => dispatch({ type: 'OPEN_FINDER', folderId: notesFolder.id })}
+                className={`${styles.finderGridItem} ${selectedGridIds.includes(item.id) ? styles.finderGridItemSelected : ''}`}
+                data-grid-id={item.id}
+                onClick={() => dispatch({ type: 'OPEN_FINDER', folderId: item.id })}
               >
                 <span className={styles.finderGridIcon} aria-hidden>
-                  🗒️
+                  {iconForKind(item.kind)}
                 </span>
-                <span className={styles.finderGridLabel}>Notes</span>
+                <span className={styles.finderGridLabel}>{item.label}</span>
               </button>
-            ) : (
-              <p className={styles.emptyState}>No applications available.</p>
-            )}
+            ))}
           </div>
         )
+      }
       case 'documents':
         return <p className={styles.emptyState}>No documents yet.</p>
       case 'downloads':
@@ -632,6 +661,7 @@ export default function FinderWindow({
 
   const onTitleBarDoubleClick = (e: ReactMouseEvent) => {
     e.stopPropagation()
+    if (isCalculator) return
     const desk = desktopRef.current
     if (!desk) return
     const { width, height } = desk.getBoundingClientRect()
@@ -711,6 +741,74 @@ export default function FinderWindow({
       </div>
     </>
   )
+
+  if (isApp) {
+    const appClass = isCalculator ? styles.calcWindow : styles.calWindow
+    return (
+      <div
+        className={`${styles.appWindow} ${appClass}`}
+        style={{
+          left,
+          top,
+          width: fw,
+          height: fh,
+          zIndex: win.z,
+        } as CSSProperties}
+        onPointerDown={onWindowPointerDown}
+        onContextMenu={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+        }}
+      >
+        {!isCalculator && (
+          <div className={styles.resizeHandles}>
+            {RESIZE_HANDLES.map(({ edge, className, label }) => (
+              <button
+                key={edge}
+                type="button"
+                className={`${styles.resizeHandle} ${className}`}
+                aria-label={label}
+                tabIndex={-1}
+                onPointerDown={(e) => onResizePointerDown(e, edge)}
+                onPointerMove={onResizePointerMove}
+                onPointerUp={onResizePointerUp}
+                onPointerCancel={onResizePointerUp}
+              />
+            ))}
+          </div>
+        )}
+        <div className={styles.appHeader} {...titleBarDragProps}>
+          <div className={styles.traffic} onDoubleClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className={`${styles.trafficBtn} ${styles.trafficClose}`}
+              aria-label="Close"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                dispatch({ type: 'CLOSE_WINDOW', windowId: win.id })
+              }}
+            />
+            <button
+              type="button"
+              className={`${styles.trafficBtn} ${styles.trafficMin}`}
+              aria-label="Minimize"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                dispatch({ type: 'MINIMIZE_WINDOW', windowId: win.id })
+              }}
+            />
+            <span className={`${styles.trafficBtn} ${styles.trafficMax}`} aria-hidden />
+          </div>
+          {isCalendar && <span className={styles.appHeaderTitle}>{title}</span>}
+        </div>
+        <div className={styles.appBody}>
+          {isCalculator ? <CalculatorApp /> : <CalendarApp />}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

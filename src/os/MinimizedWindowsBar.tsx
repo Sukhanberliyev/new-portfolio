@@ -28,7 +28,16 @@ export default function MinimizedWindowsBar({
       {ordered.map((w) => {
         const label = folderLabel(w.folderId) ?? 'Folder'
         const kind = folderKind(w.folderId)
-        const icon = kind === 'notes' ? '🗒️' : kind === 'trash' ? '🗑️' : '📁'
+        const icon =
+          kind === 'notes'
+            ? '🗒️'
+            : kind === 'trash'
+              ? '🗑️'
+              : kind === 'calculator'
+                ? '🧮'
+                : kind === 'calendar'
+                  ? '📅'
+                  : '📁'
         return (
           <button
             key={w.id}

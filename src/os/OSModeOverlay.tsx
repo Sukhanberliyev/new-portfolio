@@ -223,8 +223,10 @@ export default function OSModeOverlay({
 
   const folderById = (id: string) =>
     state.folders.find((f) => f.id === id) ??
+    state.applications.find((a) => a.id === id) ??
     (state.trashFolder.id === id ? state.trashFolder : undefined)
   const notesFolder = state.folders.find((f) => f.kind === 'notes')
+  const calendarApp = state.applications.find((a) => a.kind === 'calendar')
   const minimizedWindows = state.windows.filter((w) => w.minimized)
   const visibleWindows = state.windows.filter((w) => !w.minimized)
   const frontWindow =
@@ -316,6 +318,7 @@ export default function OSModeOverlay({
                 selectedNoteId={state.selectedNoteId}
                 folders={state.folders}
                 notesFolder={notesFolder}
+                applications={state.applications}
                 trashedFolders={state.trashedFolders}
               />
             ))}
@@ -330,6 +333,7 @@ export default function OSModeOverlay({
 
           <Dock
             notesFolder={notesFolder}
+            calendarApp={calendarApp}
             trashFolder={state.trashFolder}
             trashedCount={state.trashedFolders.length}
             windows={state.windows}
