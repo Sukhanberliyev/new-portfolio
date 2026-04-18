@@ -4,6 +4,7 @@ import styles from './OSMode.module.css'
 
 interface DockProps {
   notesFolder: DesktopFolderItem | undefined
+  calendarApp: DesktopFolderItem | undefined
   trashFolder: DesktopFolderItem
   trashedCount: number
   windows: OpenFinderWindow[]
@@ -12,6 +13,7 @@ interface DockProps {
 
 export default function Dock({
   notesFolder,
+  calendarApp,
   trashFolder,
   trashedCount,
   windows,
@@ -22,6 +24,12 @@ export default function Dock({
   )
   const notesRunning = Boolean(
     notesFolder && windows.some((win) => win.folderId === notesFolder.id)
+  )
+  const calendarOpen = Boolean(
+    calendarApp && windows.some((win) => win.folderId === calendarApp.id && !win.minimized)
+  )
+  const calendarRunning = Boolean(
+    calendarApp && windows.some((win) => win.folderId === calendarApp.id)
   )
   const trashOpen = windows.some(
     (win) => win.folderId === trashFolder.id && !win.minimized
@@ -46,6 +54,21 @@ export default function Dock({
         <span className={styles.dockLabel}>Notes</span>
         {notesRunning && <span className={styles.dockIndicator} aria-hidden />}
       </button>
+
+      {calendarApp && calendarRunning && (
+        <button
+          type="button"
+          className={`${styles.dockIcon} ${calendarOpen ? styles.dockIconActive : ''}`}
+          onClick={() => dispatch({ type: 'OPEN_FINDER', folderId: calendarApp.id })}
+          title="Calendar"
+        >
+          <span className={styles.dockEmoji} aria-hidden>
+            📅
+          </span>
+          <span className={styles.dockLabel}>Calendar</span>
+          <span className={styles.dockIndicator} aria-hidden />
+        </button>
+      )}
 
       <button
         type="button"

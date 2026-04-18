@@ -1,4 +1,5 @@
 import {
+  createDefaultApplications,
   createDefaultFolders,
   nextCustomFolderId,
   nextUntitledName,
@@ -14,8 +15,7 @@ import type {
 } from './osTypes'
 import {
   clampFinderRect,
-  FINDER_DEFAULT_HEIGHT,
-  FINDER_DEFAULT_WIDTH,
+  getDefaultSizeForKind,
   resolveFinderSize,
 } from './finderLayout'
 import { DEFAULT_WALLPAPER_ID } from './wallpapers'
@@ -23,6 +23,7 @@ import { DEFAULT_WALLPAPER_ID } from './wallpapers'
 export interface OSReducerState {
   wallpaperId: string
   folders: DesktopFolderItem[]
+  applications: DesktopFolderItem[]
   trashFolder: DesktopFolderItem
   trashedFolders: DesktopFolderItem[]
   selectedFolderId: string | null
@@ -43,6 +44,7 @@ const defaultTrashFolder = createTrashFolder()
 export const initialOSState: OSReducerState = {
   wallpaperId: DEFAULT_WALLPAPER_ID,
   folders: createDefaultFolders(),
+  applications: createDefaultApplications(),
   trashFolder: defaultTrashFolder,
   trashedFolders: [],
   selectedFolderId: null,
@@ -117,6 +119,7 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
       return {
         ...initialOSState,
         folders: createDefaultFolders(),
+        applications: createDefaultApplications(),
         trashFolder: createTrashFolder(),
         trashedFolders: [],
         selectedFolderIds: [],
@@ -262,18 +265,23 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
           selectedFolderIds: [action.folderId],
         }
       }
+      const targetFolder =
+        state.folders.find((f) => f.id === action.folderId) ??
+        state.applications.find((a) => a.id === action.folderId) ??
+        (state.trashFolder.id === action.folderId ? state.trashFolder : undefined)
+      const defaults = getDefaultSizeForKind(targetFolder?.kind)
       const w: OpenFinderWindow = {
         id: `win-${action.folderId}-${state.nextWindowZ}`,
         folderId: action.folderId,
         x: Math.min(
           120 + state.windows.length * 24,
-          typeof window !== 'undefined' ? window.innerWidth - FINDER_DEFAULT_WIDTH : 480
+          typeof window !== 'undefined' ? window.innerWidth - defaults.width : 480
         ),
         y: 80 + state.windows.length * 28,
         z: state.nextWindowZ,
         minimized: false,
-        width: FINDER_DEFAULT_WIDTH,
-        height: FINDER_DEFAULT_HEIGHT,
+        width: defaults.width,
+        height: defaults.height,
       }
       return {
         ...state,

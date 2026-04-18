@@ -16,6 +16,13 @@ export function createDefaultFolders(): DesktopFolderItem[] {
   ]
 }
 
+export function createDefaultApplications(): DesktopFolderItem[] {
+  return [
+    { id: 'app-calculator', label: 'Calculator', x: 0, y: 0, kind: 'calculator' },
+    { id: 'app-calendar', label: 'Calendar', x: 0, y: 0, kind: 'calendar' },
+  ]
+}
+
 export function nextUntitledName(existingLabels: string[]): string {
   const base = 'Untitled Folder'
   if (!existingLabels.includes(base)) return base

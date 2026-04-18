@@ -1,10 +1,23 @@
+import type { FolderKind } from './osTypes'
+
 /** Default Finder window size (matches prior fixed layout). */
 export const FINDER_DEFAULT_WIDTH = 580
 export const FINDER_DEFAULT_HEIGHT = 360
-export const FINDER_MIN_WIDTH = 580
-export const FINDER_MIN_HEIGHT = 360
+export const FINDER_MIN_WIDTH = 260
+export const FINDER_MIN_HEIGHT = 340
 
 export type ResizeEdge = 'n' | 's' | 'e' | 'w' | 'ne' | 'nw' | 'se' | 'sw'
+
+export interface WindowSize {
+  width: number
+  height: number
+}
+
+export function getDefaultSizeForKind(kind?: FolderKind): WindowSize {
+  if (kind === 'calculator') return { width: 260, height: 420 }
+  if (kind === 'calendar') return { width: 900, height: 620 }
+  return { width: FINDER_DEFAULT_WIDTH, height: FINDER_DEFAULT_HEIGHT }
+}
 
 export function resolveFinderSize(win: {
   width?: number
