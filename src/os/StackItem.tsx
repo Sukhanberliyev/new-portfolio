@@ -124,8 +124,7 @@ export default function StackItem({ stack, selected, dispatch }: StackItemProps)
         )}
       </div>
       <span className={styles.folderLabel}>
-        {stack.label}
-        {count > 1 ? ` (${count})` : ''}
+        {count > 1 ? `${stack.label} (${count})` : top.label}
       </span>
     </div>
   )
