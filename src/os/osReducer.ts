@@ -234,6 +234,7 @@ export function osReducer(state: OSReducerState, action: OSAction): OSReducerSta
         x: pos.x,
         y: pos.y,
         kind: 'custom',
+        createdAt: Date.now(),
       }
       return {
         ...state,

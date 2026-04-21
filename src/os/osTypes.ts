@@ -15,6 +15,7 @@ export interface DesktopFolderItem {
   x: number
   y: number
   kind: FolderKind
+  createdAt?: number
 }
 
 export interface NoteItem {

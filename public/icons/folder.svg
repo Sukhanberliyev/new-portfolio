@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 54" fill="none">
+  <path d="M0 2C0 0.895429 0.89543 0 2 0H14.5481C15.1503 0 15.7205 0.271394 16.1003 0.738815L18.1497 3.26119C18.5295 3.72861 19.0997 4 19.7019 4H58C59.1046 4 60 4.89543 60 6V48C60 51.3137 57.3137 54 54 54H6C2.68629 54 0 51.3137 0 48V2Z" fill="url(#folderTab)"/>
+  <path d="M0 11C0 9.89543 0.895431 9 2 9H58C59.1046 9 60 9.89543 60 11V50C60 52.2091 58.2091 54 56 54H4C1.79086 54 0 52.2091 0 50V11Z" fill="url(#folderBody)"/>
+  <defs>
+    <linearGradient id="folderTab" x1="30" y1="-3" x2="30" y2="16" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#11ADF8"/>
+      <stop offset="1" stop-color="#2476F4"/>
+    </linearGradient>
+    <linearGradient id="folderBody" x1="30" y1="9" x2="30" y2="54" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2CB2FB"/>
+      <stop offset="1" stop-color="#2577F7"/>
+    </linearGradient>
+  </defs>
+</svg>

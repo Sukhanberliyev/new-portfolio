@@ -1,9 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { DesktopFolderItem } from './osTypes'
+import type { DesktopFolderItem, FolderKind } from './osTypes'
 import type { HistoryAction } from './osHistoryReducer'
 import styles from './OSMode.module.css'
 
 const DRAG_THRESHOLD = 4
+
+function folderHasContents(kind: FolderKind): boolean {
+  switch (kind) {
+    case 'about':
+    case 'projects':
+    case 'contact':
+      return true
+    case 'playground':
+    case 'custom':
+    default:
+      return false
+  }
+}
 
 interface DesktopFolderProps {
   folder: DesktopFolderItem
@@ -24,6 +37,7 @@ export default function DesktopFolder({
 }: DesktopFolderProps) {
   const [dragVisual, setDragVisual] = useState<{ x: number; y: number } | null>(null)
   const [renameDraft, setRenameDraft] = useState(folder.label)
+  const [renameWidth, setRenameWidth] = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const skipBlurCommitRef = useRef(false)
   const dragRef = useRef<{
@@ -37,9 +51,23 @@ export default function DesktopFolder({
     lastY: number
   } | null>(null)
 
+  const measureTextWidth = useCallback((text: string) => {
+    const sizer = document.createElement('span')
+    sizer.textContent = text.length ? text : ' '
+    sizer.style.cssText =
+      'position:absolute;left:-9999px;top:0;visibility:hidden;white-space:pre;' +
+      "font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;" +
+      'font-size:12px;font-weight:400;line-height:20px;letter-spacing:normal;'
+    document.body.appendChild(sizer)
+    const textWidth = sizer.getBoundingClientRect().width
+    document.body.removeChild(sizer)
+    return Math.ceil(textWidth) + 2
+  }, [])
+
   useEffect(() => {
     if (!isRenaming) return
     setRenameDraft(folder.label)
+    setRenameWidth(measureTextWidth(folder.label))
     const id = requestAnimationFrame(() => {
       const el = inputRef.current
       if (!el) return
@@ -47,7 +75,7 @@ export default function DesktopFolder({
       el.select()
     })
     return () => cancelAnimationFrame(id)
-  }, [isRenaming, folder.label])
+  }, [isRenaming, folder.label, measureTextWidth])
 
   const clamp = useCallback(
     (x: number, y: number) => {
@@ -147,7 +175,6 @@ export default function DesktopFolder({
 
   const left = dragVisual?.x ?? folder.x
   const top = dragVisual?.y ?? folder.y
-  const folderIcon = folder.kind === 'notes' ? '🗒️' : '📁'
 
   return (
     <div
@@ -185,16 +212,39 @@ export default function DesktopFolder({
       }}
     >
       <div className={styles.folderIconWrap}>
-        <span className={styles.folderGlyph} aria-hidden>
-          {folderIcon}
-        </span>
+        {folder.kind === 'notes' ? (
+          <span className={styles.folderGlyph} aria-hidden>
+            🗒️
+          </span>
+        ) : (
+          <img
+            className={
+              folderHasContents(folder.kind)
+                ? styles.folderIconFilled
+                : styles.folderIcon
+            }
+            src={
+              folderHasContents(folder.kind)
+                ? '/icons/folder-filled.svg'
+                : '/icons/folder.svg'
+            }
+            alt=""
+            aria-hidden
+            draggable={false}
+          />
+        )}
       </div>
       {isRenaming ? (
         <input
           ref={inputRef}
           className={styles.folderRenameInput}
+          style={renameWidth != null ? { width: `${renameWidth}px` } : undefined}
           value={renameDraft}
-          onChange={(e) => setRenameDraft(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value
+            setRenameDraft(v)
+            setRenameWidth(measureTextWidth(v))
+          }}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
           onDoubleClick={(e) => e.stopPropagation()}

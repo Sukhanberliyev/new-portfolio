@@ -2,13 +2,121 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import MenuBar from './MenuBar'
 import DesktopFolder from './DesktopFolder'
+import StackItem, { type DesktopStack } from './StackItem'
 import FinderWindow from './FinderWindow'
 import MinimizedWindowsBar from './MinimizedWindowsBar'
 import Dock from './Dock'
 import type { OSReducerState } from './osReducer'
 import type { HistoryAction } from './osHistoryReducer'
+import type { DesktopFolderItem, FolderKind } from './osTypes'
 import { WALLPAPERS } from './wallpapers'
 import styles from './OSMode.module.css'
+
+type StackGroupBy = 'added' | 'modified' | 'created' | 'opened' | 'kind'
+
+const KIND_GROUP_LABELS: Record<FolderKind, string> = {
+  about: 'Documents',
+  projects: 'Documents',
+  playground: 'Documents',
+  contact: 'Documents',
+  custom: 'Folders',
+  notes: 'Notes',
+  trash: 'Trash',
+  calculator: 'Applications',
+  calendar: 'Applications',
+}
+
+const KIND_ORDER: Record<FolderKind, number> = {
+  about: 0,
+  projects: 1,
+  contact: 2,
+  playground: 3,
+  custom: 4,
+  notes: 5,
+  trash: 6,
+  calculator: 7,
+  calendar: 8,
+}
+
+function dayBucketLabel(ts: number): { key: string; label: string } {
+  if (!ts) return { key: 'unknown', label: 'Earlier' }
+  const d = new Date(ts)
+  d.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const diffDays = Math.round((today.getTime() - d.getTime()) / 86_400_000)
+  const key = d.toISOString().slice(0, 10)
+  let label: string
+  if (diffDays === 0) label = 'Today'
+  else if (diffDays === 1) label = 'Yesterday'
+  else if (diffDays < 7) label = d.toLocaleDateString(undefined, { weekday: 'long' })
+  else label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+  return { key, label }
+}
+
+function buildStacks(
+  folders: DesktopFolderItem[],
+  groupBy: StackGroupBy,
+  desktopWidth: number
+): DesktopStack[] {
+  const groups = new Map<
+    string,
+    { label: string; folders: DesktopFolderItem[]; order: number }
+  >()
+
+  folders.forEach((f) => {
+    let key: string
+    let label: string
+    let order: number
+    if (groupBy === 'kind') {
+      key = `kind:${KIND_GROUP_LABELS[f.kind]}`
+      label = KIND_GROUP_LABELS[f.kind]
+      order = KIND_ORDER[f.kind] ?? 99
+    } else {
+      const bucket = dayBucketLabel(f.createdAt ?? 0)
+      key = `day:${bucket.key}`
+      label = bucket.label
+      order = -(f.createdAt ?? 0)
+    }
+    const g = groups.get(key)
+    if (g) {
+      g.folders.push(f)
+      g.order = Math.min(g.order, order)
+    } else {
+      groups.set(key, { label, folders: [f], order })
+    }
+  })
+
+  const ordered = Array.from(groups.entries())
+    .sort((a, b) => a[1].order - b[1].order)
+    .map(([key, g]) => ({ key, ...g }))
+
+  const SLOT_W = 104
+  const SLOT_H = 116
+  const MARGIN_X = 24
+  const MARGIN_Y = 24
+  const usableH = Math.max(SLOT_H, 640)
+  const perCol = Math.max(1, Math.floor(usableH / SLOT_H))
+
+  return ordered.map((g, i) => {
+    const col = Math.floor(i / perCol)
+    const row = i % perCol
+    const representative = g.folders[0]
+    const hasContents =
+      g.folders.some(
+        (f) => f.kind === 'about' || f.kind === 'projects' || f.kind === 'contact'
+      ) || g.folders.length > 1
+    return {
+      id: `stack-${g.key}`,
+      label: g.label,
+      x: Math.max(MARGIN_X, desktopWidth - MARGIN_X - SLOT_W - col * SLOT_W),
+      y: MARGIN_Y + row * SLOT_H,
+      folders: g.folders,
+      kind: representative.kind,
+      hasContents,
+    }
+  })
+}
 
 interface OSModeOverlayProps {
   open: boolean
@@ -29,6 +137,11 @@ export default function OSModeOverlay({
 }: OSModeOverlayProps) {
   const desktopRef = useRef<HTMLDivElement>(null)
   const menuBarRef = useRef<HTMLElement>(null)
+  const [useStacks, setUseStacks] = useState(false)
+  const [stackGroupBy, setStackGroupBy] = useState<
+    'added' | 'modified' | 'created' | 'opened' | 'kind'
+  >('added')
+  const [stackSubmenuOpen, setStackSubmenuOpen] = useState(false)
   const [selectionBox, setSelectionBox] = useState<{
     x: number
     y: number
@@ -50,6 +163,10 @@ export default function OSModeOverlay({
       document.body.style.overflow = prev
     }
   }, [open])
+
+  useEffect(() => {
+    if (!state.contextMenu) setStackSubmenuOpen(false)
+  }, [state.contextMenu])
 
   useEffect(() => {
     if (!open || !state.activeMenu) return
@@ -283,17 +400,32 @@ export default function OSModeOverlay({
             onPointerUp={onDesktopPointerUp}
             onPointerCancel={onDesktopPointerUp}
           >
-            {state.folders.map((f) => (
-              <DesktopFolder
-                key={f.id}
-                folder={f}
-                selected={state.selectedFolderIds.includes(f.id)}
-                selectedCount={state.selectedFolderIds.length}
-                isRenaming={state.renamingFolderId === f.id}
-                dispatch={dispatch}
-                desktopRef={desktopRef}
-              />
-            ))}
+            {useStacks
+              ? buildStacks(
+                  state.folders,
+                  stackGroupBy,
+                  desktopRef.current?.clientWidth ?? window.innerWidth
+                ).map((stack) => (
+                  <StackItem
+                    key={stack.id}
+                    stack={stack}
+                    selected={stack.folders.some((f) =>
+                      state.selectedFolderIds.includes(f.id)
+                    )}
+                    dispatch={dispatch}
+                  />
+                ))
+              : state.folders.map((f) => (
+                  <DesktopFolder
+                    key={f.id}
+                    folder={f}
+                    selected={state.selectedFolderIds.includes(f.id)}
+                    selectedCount={state.selectedFolderIds.length}
+                    isRenaming={state.renamingFolderId === f.id}
+                    dispatch={dispatch}
+                    desktopRef={desktopRef}
+                  />
+                ))}
 
             {selectionBox && (
               <div
@@ -412,6 +544,92 @@ export default function OSModeOverlay({
                   >
                     New Folder
                   </button>
+                  <div className={styles.menuSep} />
+                  <button
+                    type="button"
+                    className={styles.menuItem}
+                    role="menuitemcheckbox"
+                    aria-checked={useStacks}
+                    onClick={() => setUseStacks((v) => !v)}
+                  >
+                    <span className={styles.menuItemCheck}>
+                      {useStacks ? '✓' : ''}
+                    </span>
+                    <span>Use Stacks</span>
+                  </button>
+                  <div
+                    className={`${styles.menuItemRow} ${!useStacks ? styles.menuItemDisabled : ''}`}
+                    onMouseEnter={() => {
+                      if (useStacks) setStackSubmenuOpen(true)
+                    }}
+                    onMouseLeave={() => setStackSubmenuOpen(false)}
+                  >
+                    <button
+                      type="button"
+                      className={`${styles.menuItem} ${styles.menuItemWithSubmenu}`}
+                      role="menuitem"
+                      disabled={!useStacks}
+                      aria-haspopup="menu"
+                      aria-expanded={stackSubmenuOpen}
+                      onClick={() => {
+                        if (useStacks) setStackSubmenuOpen((v) => !v)
+                      }}
+                    >
+                      <span className={styles.menuItemCheck} />
+                      <span className={styles.menuItemLabel}>Group Stack By</span>
+                      <span className={styles.menuItemChevron} aria-hidden>
+                        ▸
+                      </span>
+                    </button>
+                    {useStacks && stackSubmenuOpen && (
+                      <div className={styles.submenu} role="menu">
+                        {(
+                          [
+                            ['added', 'Date Added'],
+                            ['modified', 'Date Modified'],
+                            ['created', 'Date Created'],
+                            ['opened', 'Date Last Opened'],
+                          ] as const
+                        ).map(([id, label]) => (
+                          <button
+                            key={id}
+                            type="button"
+                            className={styles.menuItem}
+                            role="menuitemradio"
+                            aria-checked={stackGroupBy === id}
+                            onClick={() => {
+                              setStackGroupBy(id)
+                              setStackSubmenuOpen(false)
+                              dispatch({ type: 'CLOSE_CONTEXT_MENU' })
+                            }}
+                          >
+                            <span className={styles.menuItemCheck}>
+                              {stackGroupBy === id ? '✓' : ''}
+                            </span>
+                            <span>{label}</span>
+                          </button>
+                        ))}
+                        <div className={styles.menuSep} />
+                        <button
+                          type="button"
+                          className={styles.menuItem}
+                          role="menuitemradio"
+                          aria-checked={stackGroupBy === 'kind'}
+                          onClick={() => {
+                            setStackGroupBy('kind')
+                            setStackSubmenuOpen(false)
+                            dispatch({ type: 'CLOSE_CONTEXT_MENU' })
+                          }}
+                        >
+                          <span className={styles.menuItemCheck}>
+                            {stackGroupBy === 'kind' ? '✓' : ''}
+                          </span>
+                          <span>Kind</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.menuSep} />
                   <button
                     type="button"
                     className={styles.menuItem}

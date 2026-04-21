@@ -7,12 +7,14 @@ export function nextCustomFolderId(): string {
 }
 
 export function createDefaultFolders(): DesktopFolderItem[] {
+  const now = Date.now()
+  const day = 86_400_000
   return [
-    { id: 'f-about', label: 'About Me', x: 24, y: 24, kind: 'about' },
-    { id: 'f-projects', label: 'Projects', x: 24, y: 140, kind: 'projects' },
-    { id: 'f-playground', label: 'Playground', x: 24, y: 256, kind: 'playground' },
-    { id: 'f-contact', label: 'Contact', x: 24, y: 372, kind: 'contact' },
-    { id: 'f-notes', label: 'Notes', x: 120, y: 24, kind: 'notes' },
+    { id: 'f-about', label: 'About Me', x: 24, y: 24, kind: 'about', createdAt: now - day * 4 },
+    { id: 'f-projects', label: 'Projects', x: 24, y: 140, kind: 'projects', createdAt: now - day * 3 },
+    { id: 'f-playground', label: 'Playground', x: 24, y: 256, kind: 'playground', createdAt: now - day * 2 },
+    { id: 'f-contact', label: 'Contact', x: 24, y: 372, kind: 'contact', createdAt: now - day },
+    { id: 'f-notes', label: 'Notes', x: 120, y: 24, kind: 'notes', createdAt: now },
   ]
 }
 
