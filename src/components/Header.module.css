@@ -1,18 +1,45 @@
 .header {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.identity {
+  display: flex;
   flex-direction: column;
-  gap: 0px;
+  gap: 4px;
 }
 
 .name {
-  font-size: 20px;
+  font-family: 'Inter', 'Inter Display', -apple-system, sans-serif;
+  font-size: 16px;
   font-weight: 500;
+  line-height: 20px;
   color: var(--fg-base);
-  letter-spacing: -0.01em;
 }
 
 .role {
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
   color: var(--fg-subtle);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.location {
+  color: var(--fg-base);
+}
+
+.time {
+  color: var(--fg-muted);
 }

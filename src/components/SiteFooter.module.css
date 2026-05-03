@@ -1,0 +1,33 @@
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  border-top: 1px solid var(--fg-border);
+  padding-top: 20px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 14px;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.label {
+  color: var(--fg-muted);
+}
+
+.value {
+  color: var(--fg-base);
+}

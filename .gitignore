@@ -2,4 +2,18 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# Env files — Vercel KV / Upstash credentials live here. Never commit.
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+
+# Vercel
+.vercel
+
 .claude/

@@ -9,12 +9,17 @@ export function nextCustomFolderId(): string {
 export function createDefaultFolders(): DesktopFolderItem[] {
   const now = Date.now()
   const day = 86_400_000
+  const FOLDER_W = 88
+  const GUTTER = 8
+  const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1280
+  const rightX = Math.max(GUTTER, viewportW - FOLDER_W - GUTTER)
+  const secondColX = Math.max(GUTTER, rightX - FOLDER_W - GUTTER)
   return [
-    { id: 'f-about', label: 'About Me', x: 24, y: 24, kind: 'about', createdAt: now - day * 4 },
-    { id: 'f-projects', label: 'Projects', x: 24, y: 140, kind: 'projects', createdAt: now - day * 3 },
-    { id: 'f-playground', label: 'Playground', x: 24, y: 256, kind: 'playground', createdAt: now - day * 2 },
-    { id: 'f-contact', label: 'Contact', x: 24, y: 372, kind: 'contact', createdAt: now - day },
-    { id: 'f-notes', label: 'Notes', x: 120, y: 24, kind: 'notes', createdAt: now },
+    { id: 'f-about', label: 'About Me', x: rightX, y: 24, kind: 'about', createdAt: now - day * 4 },
+    { id: 'f-projects', label: 'Projects', x: rightX, y: 140, kind: 'projects', createdAt: now - day * 3 },
+    { id: 'f-playground', label: 'Playground', x: rightX, y: 256, kind: 'playground', createdAt: now - day * 2 },
+    { id: 'f-contact', label: 'Contact', x: rightX, y: 372, kind: 'contact', createdAt: now - day },
+    { id: 'f-notes', label: 'Notes', x: secondColX, y: 24, kind: 'notes', createdAt: now },
   ]
 }
 

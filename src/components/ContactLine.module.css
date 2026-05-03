@@ -1,8 +1,10 @@
 .contact {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 400;
-  color: var(--fg-subtle);
-  line-height: 1.6;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+  color: var(--fg-base);
+  width: 100%;
 }
 
 .contact a {

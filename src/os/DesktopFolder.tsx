@@ -25,6 +25,8 @@ interface DesktopFolderProps {
   isRenaming: boolean
   dispatch: React.Dispatch<HistoryAction>
   desktopRef: React.RefObject<HTMLElement | null>
+  overrideX?: number
+  overrideY?: number
 }
 
 export default function DesktopFolder({
@@ -34,7 +36,10 @@ export default function DesktopFolder({
   isRenaming,
   dispatch,
   desktopRef,
+  overrideX,
+  overrideY,
 }: DesktopFolderProps) {
+  const isFixed = overrideX !== undefined && overrideY !== undefined
   const [dragVisual, setDragVisual] = useState<{ x: number; y: number } | null>(null)
   const [renameDraft, setRenameDraft] = useState(folder.label)
   const [renameWidth, setRenameWidth] = useState<number | null>(null)
@@ -112,6 +117,10 @@ export default function DesktopFolder({
   const onPointerDown = (e: React.PointerEvent) => {
     if (isRenaming) return
     if (e.button !== 0) return
+    if (isFixed) {
+      dispatch({ type: 'SELECT_FOLDER', id: folder.id })
+      return
+    }
     e.currentTarget.setPointerCapture(e.pointerId)
     dragRef.current = {
       pointerId: e.pointerId,
@@ -173,8 +182,8 @@ export default function DesktopFolder({
     dispatch({ type: 'OPEN_FINDER', folderId: folder.id })
   }
 
-  const left = dragVisual?.x ?? folder.x
-  const top = dragVisual?.y ?? folder.y
+  const left = dragVisual?.x ?? overrideX ?? folder.x
+  const top = dragVisual?.y ?? overrideY ?? folder.y
 
   return (
     <div

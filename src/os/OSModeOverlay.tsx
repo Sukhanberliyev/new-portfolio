@@ -54,6 +54,30 @@ function dayBucketLabel(ts: number): { key: string; label: string } {
   return { key, label }
 }
 
+function buildGridLayout(
+  folders: DesktopFolderItem[],
+  desktopWidth: number,
+  desktopHeight: number
+): Map<string, { x: number; y: number }> {
+  const FOLDER_W = 88
+  const GUTTER_X = 16
+  const SLOT_H = 116
+  const MARGIN_X = 8
+  const MARGIN_Y = 24
+  const usableH = Math.max(SLOT_H, desktopHeight - MARGIN_Y)
+  const perCol = Math.max(1, Math.floor(usableH / SLOT_H))
+  const colStep = FOLDER_W + GUTTER_X
+  const map = new Map<string, { x: number; y: number }>()
+  folders.forEach((f, i) => {
+    const col = Math.floor(i / perCol)
+    const row = i % perCol
+    const x = Math.max(MARGIN_X, desktopWidth - MARGIN_X - FOLDER_W - col * colStep)
+    const y = MARGIN_Y + row * SLOT_H
+    map.set(f.id, { x, y })
+  })
+  return map
+}
+
 function buildStacks(
   folders: DesktopFolderItem[],
   groupBy: StackGroupBy,
@@ -148,6 +172,12 @@ export default function OSModeOverlay({
     width: number
     height: number
   } | null>(null)
+  const [desktopWidth, setDesktopWidth] = useState<number>(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 1280
+  )
+  const [desktopHeight, setDesktopHeight] = useState<number>(() =>
+    typeof window !== 'undefined' ? window.innerHeight : 800
+  )
   const selectionRef = useRef<{
     pointerId: number
     originX: number
@@ -162,6 +192,22 @@ export default function OSModeOverlay({
     return () => {
       document.body.style.overflow = prev
     }
+  }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    const el = desktopRef.current
+    if (!el) return
+    const measure = () => {
+      const w = el.clientWidth
+      const h = el.clientHeight
+      if (w > 0) setDesktopWidth(w)
+      if (h > 0) setDesktopHeight(h)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [open])
 
   useEffect(() => {
@@ -401,11 +447,7 @@ export default function OSModeOverlay({
             onPointerCancel={onDesktopPointerUp}
           >
             {useStacks
-              ? buildStacks(
-                  state.folders,
-                  stackGroupBy,
-                  desktopRef.current?.clientWidth ?? window.innerWidth
-                ).map((stack) => (
+              ? buildStacks(state.folders, stackGroupBy, desktopWidth).map((stack) => (
                   <StackItem
                     key={stack.id}
                     stack={stack}
@@ -415,17 +457,25 @@ export default function OSModeOverlay({
                     dispatch={dispatch}
                   />
                 ))
-              : state.folders.map((f) => (
-                  <DesktopFolder
-                    key={f.id}
-                    folder={f}
-                    selected={state.selectedFolderIds.includes(f.id)}
-                    selectedCount={state.selectedFolderIds.length}
-                    isRenaming={state.renamingFolderId === f.id}
-                    dispatch={dispatch}
-                    desktopRef={desktopRef}
-                  />
-                ))}
+              : (() => {
+                  const grid = buildGridLayout(state.folders, desktopWidth, desktopHeight)
+                  return state.folders.map((f) => {
+                    const pos = grid.get(f.id)
+                    return (
+                      <DesktopFolder
+                        key={f.id}
+                        folder={f}
+                        selected={state.selectedFolderIds.includes(f.id)}
+                        selectedCount={state.selectedFolderIds.length}
+                        isRenaming={state.renamingFolderId === f.id}
+                        dispatch={dispatch}
+                        desktopRef={desktopRef}
+                        overrideX={pos?.x}
+                        overrideY={pos?.y}
+                      />
+                    )
+                  })
+                })()}
 
             {selectionBox && (
               <div

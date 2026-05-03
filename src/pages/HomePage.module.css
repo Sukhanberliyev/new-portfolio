@@ -3,18 +3,41 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 120px 80px;
+  padding: 140px 32px;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 100px;
+  width: 100%;
   max-width: 600px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 60px;
+  width: 100%;
+}
+
+.about {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
 }
 
 @media (max-width: 600px) {
   .page {
-    padding: 64px 32px;
+    padding: 64px 24px;
+  }
+
+  .content {
+    gap: 64px;
+  }
+
+  .intro {
+    gap: 40px;
   }
 }

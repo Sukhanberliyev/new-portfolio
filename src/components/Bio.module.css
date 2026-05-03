@@ -1,8 +1,8 @@
 .bio {
-  font-size: 20px;
-  letter-spacing: 1%;
+  font-size: 16px;
   font-weight: 400;
-  color: var(--fg-subtle);
-  line-height: 30px;
-  max-width: 600px;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+  color: var(--fg-base);
+  width: 100%;
 }

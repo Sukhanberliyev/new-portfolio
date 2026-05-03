@@ -105,11 +105,14 @@ export type OSAction =
   | { type: 'UPDATE_NOTE_CONTENT'; id: string; content: string }
 
 function defaultPositionForNewFolder(folders: DesktopFolderItem[]): { x: number; y: number } {
-  const baseX = 24
+  const FOLDER_W = 88
+  const GUTTER = 8
+  const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1280
+  const rightX = Math.max(GUTTER, viewportW - FOLDER_W - GUTTER)
   const baseY = 488
   const step = 28
   const idx = folders.filter((f) => f.kind === 'custom').length
-  return { x: baseX + (idx % 4) * step, y: baseY + Math.floor(idx / 4) * step }
+  return { x: rightX - (idx % 4) * step, y: baseY + Math.floor(idx / 4) * step }
 }
 
 export function osReducer(state: OSReducerState, action: OSAction): OSReducerState {
