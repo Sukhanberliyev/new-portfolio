@@ -33,8 +33,4 @@ export const profile = {
     { year: '2024', name: 'Zenguard AI', category: 'GenAI Security' },
     { year: '2022', name: 'Octet', category: 'Blockchain Infrastructure' },
   ] satisfies Project[],
-  stats: {
-    visitors: '3,400',
-    lastViewed: 'London, UK',
-  },
 }

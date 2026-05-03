@@ -27,10 +27,7 @@ export default function HomePage() {
           </div>
         </section>
         <FeaturedProjects projects={profile.projects} />
-        <SiteFooter
-          visitors={profile.stats.visitors}
-          lastViewed={profile.stats.lastViewed}
-        />
+        <SiteFooter />
       </div>
     </main>
   )
