@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Redis } from '@upstash/redis'
 import { createHash, randomUUID } from 'node:crypto'
-import { isOriginAllowed, rateLimit } from './_lib/guards'
+import { isOriginAllowed, rateLimit } from './_lib/guards.js'
 
 // Garbage-collect cookieless fingerprint records after 48h. The fingerprint
 // hash already rotates daily (UTC-date salt), so older keys are unreachable

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Redis } from '@upstash/redis'
-import { isOriginAllowed, rateLimit } from './_lib/guards'
+import { isOriginAllowed, rateLimit } from './_lib/guards.js'
 
 /**
  * /api/last-viewed
