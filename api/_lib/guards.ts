@@ -48,6 +48,10 @@ function buildAllowedOrigins(): string[] {
   return list
 }
 
+function originMatchesHost(origin: string, host: string): boolean {
+  return origin === `https://${host}` || origin === `http://${host}`
+}
+
 /**
  * Allow same-origin POSTs (Origin header matches the deployment) and
  * any explicitly allow-listed origin. A missing Origin header is allowed
@@ -64,12 +68,14 @@ export function isOriginAllowed(req: VercelRequest): boolean {
   }
 
   const allowed = buildAllowedOrigins()
-  if (allowed.length === 0) {
-    // No allow-list configured (e.g. local dev). Fall back to host match.
-    const host = req.headers.host
-    if (!host) return false
-    return origin === `https://${host}` || origin === `http://${host}`
+  const host = req.headers.host
+  // Custom domains still arrive with VERCEL_URL set to the deployment URL,
+  // so accept the concrete request host before checking configured aliases.
+  if (typeof host === 'string' && originMatchesHost(origin, host)) {
+    return true
   }
+
+  if (allowed.length === 0) return false
   return allowed.includes(origin)
 }
 
