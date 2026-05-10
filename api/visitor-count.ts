@@ -21,7 +21,7 @@ const FP_TTL_SECONDS = 60 * 60 * 48
  * integration as KV_REST_API_URL / KV_REST_API_TOKEN):
  *   - visitors:total            INCR-only counter
  *   - visitor:<id>              JSON { firstSeenAt, lastSeenAt }
- *   - visitor:fp:<hashed-fp>    same shape, used only for the cookieless path
+ *   - visitor:fp:<hashed-fp>    JSON { firstSeenAt, lastSeenAt, cookieId? }
  *
  * Returns: { totalVisitors, counted }
  */
@@ -32,6 +32,12 @@ const COOKIE_NAME = 'visitor_id'
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365
 
 const redis = Redis.fromEnv()
+
+interface VisitorRecord {
+  firstSeenAt: string
+  lastSeenAt: string
+  cookieId?: string
+}
 
 function isUuid(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
@@ -97,51 +103,83 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cookieId = readCookie(req, COOKIE_NAME)
     const hasValidCookie = !!cookieId && isUuid(cookieId)
 
-    // Two id namespaces so a cookie-bearing visitor is never merged with a
-    // fingerprinted one (they'd race and double-count otherwise).
-    const visitorKey = hasValidCookie
-      ? `visitor:${cookieId}`
-      : `visitor:fp:${fingerprint(req)}`
-
     const nowIso = new Date().toISOString()
-
-    // SET ... NX is the atomic "have we seen this visitor?" primitive — only
-    // the first writer wins, so concurrent requests from the same visitor
-    // can't both increment.
-    const created = await redis.set(
-      visitorKey,
-      JSON.stringify({ firstSeenAt: nowIso, lastSeenAt: nowIso }),
-      hasValidCookie ? { nx: true } : { nx: true, ex: FP_TTL_SECONDS },
-    )
-
     let counted = false
-    if (created) {
-      // First time we've seen this visitor — bump the global counter.
-      await redis.incr('visitors:total')
-      counted = true
-    } else {
-      // Returning visitor — refresh last_seen_at, but never touch the counter.
-      const existing = await redis.get<{ firstSeenAt: string; lastSeenAt: string }>(visitorKey)
-      const firstSeenAt = existing?.firstSeenAt ?? nowIso
-      // Preserve TTL on fingerprint keys (so they still GC after 48h);
-      // cookie keys remain un-TTL'd, matching the 1y cookie lifetime.
-      await redis.set(
-        visitorKey,
-        JSON.stringify({ firstSeenAt, lastSeenAt: nowIso }),
-        hasValidCookie ? {} : { ex: FP_TTL_SECONDS },
-      )
-    }
 
-    // If the visitor came in cookieless but was just counted (or even if they
-    // weren't), set the cookie so future visits go through the strong path.
-    if (!hasValidCookie) {
-      const newId = randomUUID()
-      setVisitorCookie(res, newId)
-      // Mirror the fingerprint record under the cookie id so the next visit
-      // doesn't double-count when we switch namespaces.
-      await redis.set(
-        `visitor:${newId}`,
+    if (hasValidCookie) {
+      const visitorKey = `visitor:${cookieId}`
+      // SET ... NX is the atomic "have we seen this visitor?" primitive —
+      // only the first writer wins, so concurrent requests from the same
+      // visitor can't both increment.
+      const created = await redis.set(
+        visitorKey,
         JSON.stringify({ firstSeenAt: nowIso, lastSeenAt: nowIso }),
+        { nx: true },
+      )
+
+      if (created) {
+        // First time we've seen this visitor — bump the global counter.
+        await redis.incr('visitors:total')
+        counted = true
+      } else {
+        // Returning visitor — refresh last_seen_at, but never touch the
+        // counter. Cookie keys remain un-TTL'd, matching the 1y cookie lifetime.
+        const existing = await redis.get<VisitorRecord>(visitorKey)
+        const firstSeenAt = existing?.firstSeenAt ?? nowIso
+        await redis.set(
+          visitorKey,
+          JSON.stringify({ firstSeenAt, lastSeenAt: nowIso }),
+        )
+      }
+    } else {
+      // Cookieless visitors are first deduped by a short-lived fingerprint.
+      // Store the cookie id on that fingerprint record so clients that block
+      // cookies reuse the same mirrored visitor key instead of minting a new
+      // permanent key on every page load.
+      const visitorKey = `visitor:fp:${fingerprint(req)}`
+      const newCookieId = randomUUID()
+      const created = await redis.set(
+        visitorKey,
+        JSON.stringify({
+          firstSeenAt: nowIso,
+          lastSeenAt: nowIso,
+          cookieId: newCookieId,
+        } satisfies VisitorRecord),
+        { nx: true, ex: FP_TTL_SECONDS },
+      )
+
+      let firstSeenAt = nowIso
+      let cookieIdToSet: string = newCookieId
+
+      if (created) {
+        await redis.incr('visitors:total')
+        counted = true
+      } else {
+        const existing = await redis.get<VisitorRecord>(visitorKey)
+        firstSeenAt = existing?.firstSeenAt ?? nowIso
+        cookieIdToSet =
+          existing?.cookieId && isUuid(existing.cookieId)
+            ? existing.cookieId
+            : newCookieId
+        await redis.set(
+          visitorKey,
+          JSON.stringify({
+            firstSeenAt,
+            lastSeenAt: nowIso,
+            cookieId: cookieIdToSet,
+          } satisfies VisitorRecord),
+          { ex: FP_TTL_SECONDS },
+        )
+      }
+
+      setVisitorCookie(res, cookieIdToSet)
+      // Mirror the fingerprint record under the cookie id so the next visit
+      // doesn't double-count when we switch namespaces. This write is stable
+      // for repeated cookieless requests because cookieIdToSet is persisted on
+      // the fingerprint record.
+      await redis.set(
+        `visitor:${cookieIdToSet}`,
+        JSON.stringify({ firstSeenAt, lastSeenAt: nowIso }),
         { nx: true },
       )
     }
