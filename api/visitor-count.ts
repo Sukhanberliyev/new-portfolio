@@ -149,7 +149,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       )
 
       let firstSeenAt = nowIso
-      let cookieIdToSet = newCookieId
+      let cookieIdToSet: string = newCookieId
 
       if (created) {
         await redis.incr('visitors:total')
