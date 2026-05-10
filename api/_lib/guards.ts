@@ -48,6 +48,17 @@ function buildAllowedOrigins(): string[] {
   return list
 }
 
+function originMatchesHost(origin: string, host: string | undefined): boolean {
+  if (!host) return false
+  try {
+    const url = new URL(origin)
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return false
+    return url.host.toLowerCase() === host.toLowerCase()
+  } catch {
+    return false
+  }
+}
+
 /**
  * Allow same-origin POSTs (Origin header matches the deployment) and
  * any explicitly allow-listed origin. A missing Origin header is allowed
@@ -56,19 +67,21 @@ function buildAllowedOrigins(): string[] {
  */
 export function isOriginAllowed(req: VercelRequest): boolean {
   const origin = req.headers.origin
+  const host = req.headers.host
   if (!origin) {
     // Same-origin fetches from <script> tags in HTML often omit Origin.
     // Allow only when the request also looks same-site via the Host header.
-    const host = req.headers.host
     return typeof host === 'string' && host.length > 0
+  }
+
+  if (typeof host === 'string' && originMatchesHost(origin, host)) {
+    return true
   }
 
   const allowed = buildAllowedOrigins()
   if (allowed.length === 0) {
     // No allow-list configured (e.g. local dev). Fall back to host match.
-    const host = req.headers.host
-    if (!host) return false
-    return origin === `https://${host}` || origin === `http://${host}`
+    return typeof host === 'string' && originMatchesHost(origin, host)
   }
   return allowed.includes(origin)
 }
