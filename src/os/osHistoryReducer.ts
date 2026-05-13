@@ -40,6 +40,7 @@ function isUndoable(action: OSAction): boolean {
     case 'TOGGLE_WINDOW_ZOOM':
     case 'NEW_NOTE':
     case 'DELETE_NOTE':
+    case 'UPDATE_NOTE_CONTENT':
       return true
     default:
       return false
