@@ -136,7 +136,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // weren't), set the cookie so future visits go through the strong path.
     if (!hasValidCookie) {
       const newId = randomUUID()
-      setVisitorCookie(res, newId)
       // Mirror the fingerprint record under the cookie id so the next visit
       // doesn't double-count when we switch namespaces.
       await redis.set(
@@ -144,6 +143,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         JSON.stringify({ firstSeenAt: nowIso, lastSeenAt: nowIso }),
         { nx: true },
       )
+      setVisitorCookie(res, newId)
     }
 
     const totalVisitors = (await redis.get<number>('visitors:total')) ?? 0
