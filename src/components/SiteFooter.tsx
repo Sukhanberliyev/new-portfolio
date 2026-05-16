@@ -13,13 +13,18 @@ function formatLocation(data: LastViewed | null): string | null {
 }
 
 export default function SiteFooter() {
-  const liveTotal = useVisitorCount()
-  const { data: location } = useLastViewed()
+  const { total: liveTotal, status: visitorStatus } = useVisitorCount()
+  const { data: location, status: locationStatus } = useLastViewed()
 
   const visitorsDisplay =
-    liveTotal !== undefined ? numberFormatter.format(liveTotal) : ''
+    liveTotal !== undefined
+      ? numberFormatter.format(liveTotal)
+      : visitorStatus === 'error'
+        ? 'Unavailable'
+        : 'Loading'
 
-  const locationValue = formatLocation(location) ?? ''
+  const locationValue =
+    locationStatus === 'ready' ? formatLocation(location) : null
 
   return (
     <footer className={styles.footer}>
@@ -28,10 +33,16 @@ export default function SiteFooter() {
           <span className={styles.label}>Visitors:</span>
           <span className={styles.value}>{visitorsDisplay}</span>
         </span>
-        <span className={styles.pair}>
-          <span className={styles.label}>Last viewed:</span>
-          <span className={styles.value}>{locationValue}</span>
-        </span>
+        {locationValue ? (
+          <span className={styles.pair}>
+            <span className={styles.label}>Last viewed:</span>
+            <span className={styles.value}>{locationValue}</span>
+          </span>
+        ) : (
+          <span className={styles.pair}>
+            <span className={styles.label}>Recently viewed</span>
+          </span>
+        )}
       </div>
     </footer>
   )
