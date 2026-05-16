@@ -5,6 +5,13 @@ interface VisitorCountResponse {
   counted: boolean
 }
 
+type Status = 'loading' | 'ready' | 'error'
+
+interface UseVisitorCountResult {
+  total: number | undefined
+  status: Status
+}
+
 /**
  * Calls POST /api/visitor-count exactly once per page load and returns the
  * total visitor count for display.
@@ -13,8 +20,11 @@ interface VisitorCountResponse {
  * is only hit once. The endpoint is idempotent on the server side too (cookie
  * + SET NX), so the guard is belt-and-suspenders rather than load-bearing.
  */
-export function useVisitorCount(initial?: number) {
+export function useVisitorCount(initial?: number): UseVisitorCountResult {
   const [total, setTotal] = useState<number | undefined>(initial)
+  const [status, setStatus] = useState<Status>(
+    initial !== undefined ? 'ready' : 'loading',
+  )
   const firedRef = useRef(false)
 
   useEffect(() => {
@@ -27,19 +37,24 @@ export function useVisitorCount(initial?: number) {
       credentials: 'include',
       signal: controller.signal,
     })
-      .then((r) => (r.ok ? (r.json() as Promise<VisitorCountResponse>) : null))
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.json() as Promise<VisitorCountResponse>
+      })
       .then((data) => {
-        if (data) setTotal(data.totalVisitors)
+        setTotal(data.totalVisitors)
+        setStatus('ready')
       })
       .catch((err) => {
         if (err?.name !== 'AbortError') {
-          // Soft-fail: the UI just keeps the placeholder/initial value.
+          // Soft-fail: the UI renders an explicit fallback instead of blanks.
           console.warn('[visitor-count] request failed', err)
+          setStatus('error')
         }
       })
 
     return () => controller.abort()
   }, [])
 
-  return total
+  return { total, status }
 }
